@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,9 +11,30 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] bool isMoving;
 
+    [SerializeField] Vector2 input;
+
+    [SerializeField] Animator animator;
+
+    private static int moveRight = Animator.StringToHash("playerWalkRight");
+    private static int moveLeft = Animator.StringToHash("playerWalkLeft");
+    private static int moveUp = Animator.StringToHash("playerWalkUp");
+    private static int moveDown = Animator.StringToHash("playerWalkDown");
+    private static int idle = Animator.StringToHash("playerIdle");
+
+    private static int curAniHash;
+    private void pRun()
+    {
+        if (Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            moveSpeed += 5;
+        }
+        else if (Input.GetKeyUp(KeyCode.LeftShift))
+        {
+            moveSpeed -= 5;
+        }
+    }
     private void pMove()
     {
-        Vector2 input;
 
         if (!isMoving)
         {
@@ -43,6 +65,36 @@ public class PlayerController : MonoBehaviour
         transform.position = targetPos;
         isMoving = false;
     }
+    private void AnimatorPlay()
+    {
+        int checkAniHash;
+        if (input.x > 0)
+        {
+            checkAniHash = moveRight;
+        }
+        else if (input.x < 0)
+        {
+            checkAniHash = moveLeft;
+        }
+        else if (input.y > 0)
+        {
+            checkAniHash = moveUp;
+        }
+        else if (input.y < 0)
+        {
+            checkAniHash = moveDown;
+        }
+        else
+        {
+            checkAniHash = idle;
+        }
+        if (curAniHash != checkAniHash)
+        {
+            curAniHash = checkAniHash;
+            animator.Play(curAniHash);
+        }
+
+    }
 
     void Start()
     {
@@ -53,5 +105,7 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         pMove();
+        pRun();
+        AnimatorPlay();
     }
 }
