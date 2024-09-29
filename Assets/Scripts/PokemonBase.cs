@@ -14,8 +14,8 @@ public class PokemonBase : ScriptableObject
     [SerializeField] Sprite frontSprite;
     [SerializeField] Sprite backSprite;
     
-    [SerializeField] Sprite type1;
-    [SerializeField] Sprite type2;
+    [SerializeField] PokemonType type1;
+    [SerializeField] PokemonType type2;
 
     [SerializeField] int hp;
     [SerializeField] int attack;
@@ -23,6 +23,57 @@ public class PokemonBase : ScriptableObject
     [SerializeField] int sAttack;
     [SerializeField] int sDefense;
     [SerializeField] int speed;
+
+    public string Name
+    {
+        get { return name; }
+    }
+    public string Description
+    {
+        get { return description; }
+    }
+    public Sprite FrontSprite
+    {
+        get { return frontSprite; } 
+    }
+    public Sprite BackSprite
+    {
+        get { return backSprite; }
+    }
+    public PokemonType Type1
+    {
+        get { return type1; }
+    }
+    public PokemonType Type2
+    {
+        get { return type2; }
+    }
+    public int HP 
+    {
+        get { return hp; }
+    }
+    public int Attack
+    {
+        get { return attack; }
+    }
+    public int Defense
+    {
+        get { return defense; }
+    }
+    public int SpecialAttack
+    {
+        get { return sAttack; }
+    }
+    public int SpecialDefense
+    {
+        get { return sDefense; }
+    }
+    public int Speed
+    {
+        get { return speed; }
+    }
+
+
 }
 
 public enum PokemonType
