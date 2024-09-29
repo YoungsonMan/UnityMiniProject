@@ -8,12 +8,14 @@ public class PlayerController : MonoBehaviour
     
     [SerializeField] float moveSpeed;
     [SerializeField] float runSpeed;
-
     [SerializeField] bool isMoving;
 
     [SerializeField] Vector2 input;
-
     [SerializeField] Animator animator;
+
+    // LayerMask 이용해서 레이어로 못가는곳 지정하기.
+    [SerializeField] LayerMask restrictedLayer;
+
 
     private static int moveRight = Animator.StringToHash("playerWalkRight");
     private static int moveLeft = Animator.StringToHash("playerWalkLeft");
@@ -55,7 +57,8 @@ public class PlayerController : MonoBehaviour
                 targetPos.x += input.x;
                 targetPos.y += input.y;
 
-                StartCoroutine(Move(targetPos));    
+                if (IsWalkable(targetPos))
+                    StartCoroutine(Move(targetPos));    
             }
         }
     }
@@ -114,7 +117,15 @@ public class PlayerController : MonoBehaviour
             curAniHash = checkAniHash;
             animator.Play(curAniHash);
         }
+    }
 
+    private bool IsWalkable(Vector3 targetPos)
+    {
+        if (Physics2D.OverlapCircle(targetPos, 0.3f, restrictedLayer) != null)
+        {
+            return false;
+        }
+        return true;
     }
 
     void Start()
