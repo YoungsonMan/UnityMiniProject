@@ -21,6 +21,11 @@ public class PlayerController : MonoBehaviour
     private static int moveDown = Animator.StringToHash("playerWalkDown");
     private static int idle = Animator.StringToHash("playerIdle");
 
+    private static int runRight = Animator.StringToHash("playerRunRight");
+    private static int runLeft = Animator.StringToHash("playerRunLeft");
+    private static int runUp = Animator.StringToHash("playerRunUp");
+    private static int runDown = Animator.StringToHash("playerRunDown");
+
     private static int curAniHash;
     private void pRun()
     {
@@ -71,18 +76,34 @@ public class PlayerController : MonoBehaviour
         if (input.x > 0)
         {
             checkAniHash = moveRight;
+            if (moveSpeed > 9.0f)
+            {
+                checkAniHash = runRight;
+            }
         }
         else if (input.x < 0)
         {
             checkAniHash = moveLeft;
+            if (moveSpeed > 9.0f)
+            {
+                checkAniHash = runLeft;
+            }
         }
         else if (input.y > 0)
         {
             checkAniHash = moveUp;
+            if (moveSpeed > 9.0f)
+            {
+                checkAniHash = runUp;
+            }
         }
         else if (input.y < 0)
         {
             checkAniHash = moveDown;
+            if (moveSpeed > 9.0f)
+            {
+                checkAniHash = runDown;
+            }
         }
         else
         {
