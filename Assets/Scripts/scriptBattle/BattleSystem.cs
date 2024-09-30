@@ -112,7 +112,6 @@ public class BattleSystem : MonoBehaviour
 
         // 코루틴 완료될때까지 기다리고 완료되면실행
         yield return battleDialog.TypeDialog($"A wild {enemyUnit.Pokemon.pBase.Name} appeared."); 
-        yield return new WaitForSeconds(1f);
 
         PlayerAction();
     }
@@ -142,14 +141,16 @@ public class BattleSystem : MonoBehaviour
         // 데미지 가하기
         yield return battleDialog.TypeDialog($"{playerUnit.Pokemon.pBase.Name} used {skill.Base.Name}");
 
-        yield return new WaitForSeconds(1f);
 
-        bool isFainted = enemyUnit.Pokemon.TakeDamage(skill, playerUnit.Pokemon);
+
+        var damageDetails = enemyUnit.Pokemon.TakeDamage(skill, playerUnit.Pokemon);
         // 공격받은대상(적) 피통업데이트(HP - DMG)
         yield return enemyHud.UpdateHP();
+        // 데미지효율 코루틴
+        yield return ShowDamageDetails(damageDetails);
 
         // 데미지 받다가 죽음
-        if (isFainted)
+        if (damageDetails.Fainted)
         {
             yield return battleDialog.TypeDialog($"{enemyUnit.Pokemon.pBase.Name} Fainted");
         }
@@ -168,14 +169,16 @@ public class BattleSystem : MonoBehaviour
         var skill = enemyUnit.Pokemon.GetRandomSkill();
         yield return battleDialog.TypeDialog($"{enemyUnit.Pokemon.pBase.Name} used {skill.Base.Name}");
 
-        yield return new WaitForSeconds(1f);
 
-        bool isFainted = playerUnit.Pokemon.TakeDamage(skill, enemyUnit.Pokemon);
+
+        var damageDetails = playerUnit.Pokemon.TakeDamage(skill, enemyUnit.Pokemon);
         // 공격받은대상(플레이어) 피통업데이트(HP - DMG)
         yield return playerHud.UpdateHP();
+        // 데미지효율 코루틴
+        yield return ShowDamageDetails(damageDetails);
 
         // 데미지 받다가 죽음
-        if (isFainted)
+        if (damageDetails.Fainted)
         {
             yield return battleDialog.TypeDialog($"{playerUnit.Pokemon.pBase.Name} Fainted");
         }
@@ -183,6 +186,23 @@ public class BattleSystem : MonoBehaviour
         {
             PlayerAction();
         }
+    }
+
+    IEnumerator ShowDamageDetails(DamageDetails damageDetails)
+    {
+        if (damageDetails.Critical > 1f)
+        {
+            yield return battleDialog.TypeDialog("A CRITICAL HIT!!!");
+        }
+        if (damageDetails.TypeEffectiveness > 1f)
+        {
+            yield return battleDialog.TypeDialog("It was SUPER effective!");
+        }
+        else if (damageDetails.TypeEffectiveness < 1f)
+        {
+            yield return battleDialog.TypeDialog("It wasn't that effective...");
+        }
+
     }
 
 }

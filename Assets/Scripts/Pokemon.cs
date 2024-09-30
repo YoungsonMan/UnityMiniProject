@@ -55,7 +55,7 @@ public class Pokemon
         get { return Mathf.FloorToInt((pBase.Speed * Level) / 100f) + 5; }
     }
 
-    public bool TakeDamage(Skill skill, Pokemon attacker)
+    public DamageDetails TakeDamage(Skill skill, Pokemon attacker)
     {
         /* DAMAGE ALGORITHM
          * https://bulbapedia.bulbagarden.net/wiki/Damage#Damage_calculation
@@ -83,20 +83,40 @@ public class Pokemon
             일단 참고영상에서 나온거쓰고 추후 수정하기.
           */
 
+        // Critical 확률 stage(0~4)마다 다름 (일단 4세대 기준으로 만들고있으니)
+        // 0 = 1/16, 1 = 1/8, 2 = 1/4, 3 = 1/3, 4 = 1/2
+        // 6.25% => 12.5% => 25% => 50%
+        float critical = 1f;
+        if (Random.value * 100f <= 6.25f)
+        {
+            critical = 2f;
+        }
+
         // Damage = (( ((2*Level/5)+2) * Power * (A/D) / 50) + 2) * Modifier
-        float modifiers = Random.Range(0.85f, 1f); // 여기서도 그냥 랜덤요소로 퉁치고 가는데 나중에 기회되면 수정
+        float type = TypeChart.GetEffectiveness(skill.Base.Type, this.pBase.Type1) * TypeChart.GetEffectiveness(skill.Base.Type, this.pBase.Type2);
+
+        var damageDetails = new DamageDetails()
+        {
+            TypeEffectiveness = type,
+            Critical = critical,
+            Fainted = false
+        };
+
+        // 여기서도 그냥 랜덤요소로 퉁치고 가는데 나중에 기회되면 수정
+        float modifiers = Random.Range(0.85f, 1f) * type * critical; 
         float a = (2 * attacker.Level + 10) / 250f; // 나중에 50나누는걸 여기서 250으로.
         float d = a * skill.Base.Power * ((float)attacker.Attack / Defense) + 2;
         int damage = Mathf.FloorToInt(d * modifiers);
+
 
         curHP -= damage;
         if (curHP <= 0)
         {
             // pokemon is fainted
             curHP = 0; // 마이너스로 체력 안가게 0으로 설정
-            return true;
+            damageDetails.Fainted = true;
         }
-        return false;
+        return damageDetails;
     }
 
     public Skill GetRandomSkill()
@@ -106,4 +126,11 @@ public class Pokemon
         int r = Random.Range(0, Skills.Count);
         return Skills[r];
     }
+}
+
+public class DamageDetails
+{
+    public bool Fainted { get; set; }
+    public float Critical {  get; set; }
+    public float TypeEffectiveness {  get; set; }
 }

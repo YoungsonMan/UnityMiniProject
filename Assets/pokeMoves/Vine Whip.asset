@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   name: Vine Whip
   description: The foe is struck with slender, whiplike vines to inflict damage.
-  type: 4
+  type: 5
   power: 45
   accuracy: 100
   pp: 20
