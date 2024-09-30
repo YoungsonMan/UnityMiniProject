@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85660be31ae88394bbf0c8f00f1acb94, type: 3}
   m_Name: Tackle
   m_EditorClassIdentifier: 
-  name: 
+  name: Tackle
   description: A physical attack in which the user charges and slams into the foe
     with its whole body.
   type: 0

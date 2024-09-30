@@ -11,7 +11,7 @@ public class BattleHud : MonoBehaviour
     public void SetData(Pokemon pokemon)
     {
         nameText.text = pokemon.pBase.Name;
-        levelText.text = $"Level {pokemon.Level}";
+        levelText.text = $"Lv. {pokemon.Level}"; // "Level" + pokemon.Level
         hpBar.SetHP((float) pokemon.curHP / pokemon.Hp);
     }
 
