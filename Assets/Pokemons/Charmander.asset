@@ -24,3 +24,10 @@ MonoBehaviour:
   sAttack: 60
   sDefense: 50
   speed: 65
+  learnableSkills:
+  - skillBase: {fileID: 11400000, guid: 173a041e658b38248893823e441479e2, type: 2}
+    level: 1
+  - skillBase: {fileID: 11400000, guid: d2f5f3cfbba7ac14a9f094b6b0ade41e, type: 2}
+    level: 1
+  - skillBase: {fileID: 11400000, guid: 734ebc2fc65f7e544ae5409b007029e4, type: 2}
+    level: 4

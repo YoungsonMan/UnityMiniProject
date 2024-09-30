@@ -4,39 +4,54 @@ using UnityEngine;
 
 public class Pokemon 
 {
-    PokemonBase pbase;
-    int level;
+    public PokemonBase pBase { get; set; }
+    public int Level { get; set; }
 
+    public int curHP {  get; set; }    
+
+    public List<Skill> Skills {  get; set; }
     public Pokemon(PokemonBase pokeBase, int pokeLevel)
     {
-        pbase = pokeBase;
-        level = pokeLevel;
+        pBase = pokeBase;
+        Level = pokeLevel;
+        curHP = Hp;
+
+
+        // 스킬생성
+        Skills = new List<Skill>();
+        foreach (var skill in pBase.LearnableSkills)
+        {
+            if (skill.Level <= Level)
+                Skills.Add(new Skill(skill.Base));
+            if (Skills.Count >= 4)
+                break;
+        }
     }
 
     public int Hp
     {
         // 실제 포켓몬게임에 수치 정하는 공식.
-        get { return Mathf.FloorToInt((pbase.HP * level) / 100f) + 10; }
+        get { return Mathf.FloorToInt((pBase.HP * Level) / 100f) + 10; }
     }
     public int Attack
     {
-        get { return Mathf.FloorToInt((pbase.Attack * level) / 100f) + 5; }
+        get { return Mathf.FloorToInt((pBase.Attack * Level) / 100f) + 5; }
     }
     public int Defense
     {
-        get { return Mathf.FloorToInt((pbase.Defense * level) / 100f) + 5; }
+        get { return Mathf.FloorToInt((pBase.Defense * Level) / 100f) + 5; }
     }
     public int SpecialAttack
     {
-        get { return Mathf.FloorToInt((pbase.SpecialAttack * level) / 100f) + 5; }
+        get { return Mathf.FloorToInt((pBase.SpecialAttack * Level) / 100f) + 5; }
     }
     public int SpecialDefense
     {
-        get { return Mathf.FloorToInt((pbase.SpecialDefense * level) / 100f) + 5; }
+        get { return Mathf.FloorToInt((pBase.SpecialDefense * Level) / 100f) + 5; }
     }
     public int Speed
     {
-        get { return Mathf.FloorToInt((pbase.Speed * level) / 100f) + 5; }
+        get { return Mathf.FloorToInt((pBase.Speed * Level) / 100f) + 5; }
     }
 
 }
