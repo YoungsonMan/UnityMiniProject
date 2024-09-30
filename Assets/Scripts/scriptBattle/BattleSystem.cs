@@ -130,10 +130,59 @@ public class BattleSystem : MonoBehaviour
         battleDialog.EnableDialogText(false);
         battleDialog.EnableSkillSelector(true);
     }
+
+
+    // 플레이어 ---공격---> 적
     IEnumerator PerformPlayerSkill()
     {
+        // 플레이어가 계속 스킬선택할수있음으로, 상태를 Busy로
+        state = BattleState.Busy;
+
         var skill = playerUnit.Pokemon.Skills[currentSkill];
+        // 데미지 가하기
         yield return battleDialog.TypeDialog($"{playerUnit.Pokemon.pBase.Name} used {skill.Base.Name}");
+
+        yield return new WaitForSeconds(1f);
+
+        bool isFainted = enemyUnit.Pokemon.TakeDamage(skill, playerUnit.Pokemon);
+        // 공격받은대상(적) 피통업데이트(HP - DMG)
+        yield return enemyHud.UpdateHP();
+
+        // 데미지 받다가 죽음
+        if (isFainted)
+        {
+            yield return battleDialog.TypeDialog($"{enemyUnit.Pokemon.pBase.Name} Fainted");
+        }
+        else  // 데미지 견디면 적 차례
+        {
+            StartCoroutine(EnemyMove());
+        }
+    }
+
+
+    // 적 ---공격---> 플레이어
+    IEnumerator EnemyMove()
+    {
+        state = BattleState.EnemyMove;
+
+        var skill = enemyUnit.Pokemon.GetRandomSkill();
+        yield return battleDialog.TypeDialog($"{enemyUnit.Pokemon.pBase.Name} used {skill.Base.Name}");
+
+        yield return new WaitForSeconds(1f);
+
+        bool isFainted = playerUnit.Pokemon.TakeDamage(skill, enemyUnit.Pokemon);
+        // 공격받은대상(플레이어) 피통업데이트(HP - DMG)
+        yield return playerHud.UpdateHP();
+
+        // 데미지 받다가 죽음
+        if (isFainted)
+        {
+            yield return battleDialog.TypeDialog($"{playerUnit.Pokemon.pBase.Name} Fainted");
+        }
+        else  // 데미지 견디면 적 차례
+        {
+            PlayerAction();
+        }
     }
 
 }
