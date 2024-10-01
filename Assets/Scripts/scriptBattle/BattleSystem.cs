@@ -67,8 +67,6 @@ public class BattleSystem : MonoBehaviour
         {
             currentAction -= 2;
         }
-        // 스킬고르는거랑 비슷하지만 맥스갯수 안넘어가는법을 조금다르게
-        // 이게 더 심플하고 깔끔.
         currentAction = Mathf.Clamp(currentAction, 0, 3);
 
         battleDialog.UpdateActionSelection(currentAction);
@@ -163,12 +161,12 @@ public class BattleSystem : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Z))
         {
             var selectedMember = playerParty.Pokemons[currentMember];
-            if (selectedMember.Hp <= 0)
+            if (selectedMember.curHP <= 0) // 밑에 포켓몬 죽은다음에 다음포켓몬말고 선택하기 바꾸면서 이게 안됨
             {
                 partyScreen.SetMessageText("Pokemon is FAINTED");
                 return;
             }
-            if (selectedMember == playerUnit.Pokemon)
+            if (selectedMember == playerUnit.Pokemon) //이건잘되는데
             {
                 partyScreen.SetMessageText("Pokemon is ALREADY out");
                 return;
@@ -184,11 +182,16 @@ public class BattleSystem : MonoBehaviour
             PlayerAction();
         }
     }
+
+    // 포켓몬 교체|교대
     IEnumerator SwitchPokemon(Pokemon newPokemon)
     {
-        yield return battleDialog.TypeDialog($"Come back {playerUnit.Pokemon.pBase.Name}");
-        playerUnit.PlayFaintAnimation(); // 교체애니메이션을 새로해도 되지만(왼쪽으로빠진다던가..) 일단 기절모션 재탕
-        yield return new WaitForSeconds(2f);
+        if (playerUnit.Pokemon.curHP > 0) // 살아있는 포켓몬만 교대
+        {
+            yield return battleDialog.TypeDialog($"Come back {playerUnit.Pokemon.pBase.Name}");
+            playerUnit.PlayFaintAnimation(); // 교체애니메이션을 새로해도 되지만(왼쪽으로빠진다던가..) 일단 기절모션 재탕
+            yield return new WaitForSeconds(2f);
+        }
 
         // 기절했을때 다음포켓몬 나오는 코드 재탕
         playerUnit.Setup(newPokemon);
@@ -327,23 +330,25 @@ public class BattleSystem : MonoBehaviour
             yield return new WaitForSeconds(2f);
 
 
-            // 싸우던포켓몬 죽으면 살아있는 포켓몬있나 찾고있으면 내보내기
+            // 싸우던포켓몬 죽으면 살아있는 포켓몬있나 찾기
             var nextPokemon =  playerParty.GetHealthyPokemon();
             if (nextPokemon != null)
             {
-                playerUnit.Setup(nextPokemon);
-                playerHud.SetData(nextPokemon);
-
-                battleDialog.SetSkillNames(nextPokemon.Skills);
-
-                // 코루틴 완료될때까지 기다리고 완료되면실행
-                yield return battleDialog.TypeDialog($"Go REVENGE!!! {nextPokemon.pBase.Name}!!! ");
-
-                PlayerAction();
+                OpenPartyScreen();
+                /*  나중에 설정에서 죽으면 바로 "다음포켓몬내보내기" 활성화하게되면 다시쓰고
+                 *  죽으면 이제 포켓몬 선택해서 내보내게 하기
+                    playerUnit.Setup(nextPokemon);
+                    playerHud.SetData(nextPokemon);
+                    battleDialog.SetSkillNames(nextPokemon.Skills);
+                    // 코루틴 완료될때까지 기다리고 완료되면실행
+                    yield return battleDialog.TypeDialog($"Go REVENGE!!! {nextPokemon.pBase.Name}!!! ");
+                    PlayerAction();
+                */
             }
             else
             {
-                OnBattleOver(false); //플레이어 패배
+                // 없으면 플레이어 패배
+                OnBattleOver(false); 
             }
 
         }
