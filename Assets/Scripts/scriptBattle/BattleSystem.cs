@@ -300,14 +300,35 @@ public class BattleSystem : MonoBehaviour
         // 공격 => 상대방 깜빡(색바뀌기)
         targetUnit.PlayHitAnimation();
 
-        var damageDetails = targetUnit.Pokemon.TakeDamage(skill, sourceUnit.Pokemon);
-        // 공격받은대상(적) 피통업데이트(HP - DMG)
-        yield return targetUnit.Hud.UpdateHP();
-        // 데미지효율 코루틴
-        yield return ShowDamageDetails(damageDetails);
+        if (skill.Base.Category == SkillCategory.Status)
+        {
+            // 버프/디버프 대상확인
+            var effects = skill.Base.Effects;
+            if (effects.Boosts != null)
+            {
+                if (skill.Base.Target == SkillTarget.Self)
+                {   // 본인
+                    sourceUnit.Pokemon.ApplyBoosts(effects.Boosts); 
+                }
+                else
+                {   // 상대방
+                    targetUnit.Pokemon.ApplyBoosts(effects.Boosts);
+                }
+            }
+        }
+        else
+        {
+            var damageDetails = targetUnit.Pokemon.TakeDamage(skill, sourceUnit.Pokemon);
+            // 공격받은대상(적) 피통업데이트(HP - DMG)
+            yield return targetUnit.Hud.UpdateHP();
+            // 데미지효율 코루틴
+            yield return ShowDamageDetails(damageDetails);
+
+        }
+
 
         // 데미지 받다가 죽음
-        if (damageDetails.Fainted)
+        if (targetUnit.Pokemon.curHP <= 0)
         {
             yield return battleDialog.TypeDialog($"{targetUnit.Pokemon.pBase.Name} Fainted");
             targetUnit.PlayFaintAnimation();

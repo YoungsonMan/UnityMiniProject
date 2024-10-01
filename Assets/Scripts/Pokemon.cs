@@ -86,13 +86,28 @@ public class Pokemon
         }
         else
         {
-            statVal = Mathf.FloorToInt(statVal / boostValues[boost]);
+            statVal = Mathf.FloorToInt(statVal / boostValues[-boost]);
         }
 
         return statVal;
     }
-    // Dictionary사용으로 계속 계산안하게하기
 
+    public void ApplyBoosts(List<StatBoost> statBoosts)
+    {
+        foreach (var statBoost in statBoosts)
+        {
+            var stat = statBoost.stat;
+            var boost = statBoost.boost;
+
+            StatBoosts[stat] = Mathf.Clamp(StatBoosts[stat] + boost, -6, 6);
+
+            Debug.Log($"{stat} has been boosted to {StatBoosts[stat]}");
+
+        }
+    }
+
+
+    // Dictionary사용으로 계속 계산안하게하기
     public int Hp { get; private set; }
     public int Attack
     {
@@ -165,8 +180,8 @@ public class Pokemon
         // 특공베이스 스킬데미지 (2세대 기준, 송성공격은 다 특공베이스로들어감)
         // 특공수치의 공격이면 리턴스페셜
         // 특공은 특방수치로 댐감
-        float attack = (skill.Base.IsSpecial) ? attacker.SpecialAttack : attacker.Attack;
-        float defense = (skill.Base.IsSpecial) ? SpecialDefense : Defense;
+        float attack = (skill.Base.Category == SkillCategory.Special) ? attacker.SpecialAttack : attacker.Attack;
+        float defense = (skill.Base.Category == SkillCategory.Special) ? SpecialDefense : Defense;
 
 
         // 여기서도 그냥 랜덤요소로 퉁치고 가는데 나중에 기회되면 수정
