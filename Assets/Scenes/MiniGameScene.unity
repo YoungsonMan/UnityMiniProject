@@ -81565,6 +81565,10 @@ MonoBehaviour:
     level: 7
   - pokeBase: {fileID: 11400000, guid: 5d89f9c418984d447950413f8a1b5e5b, type: 2}
     level: 7
+  - pokeBase: {fileID: 11400000, guid: 28b0b113dabd24242872d61435307d8a, type: 2}
+    level: 7
+  - pokeBase: {fileID: 11400000, guid: aedb95f2b03c0574f9b9677cd44d3c04, type: 2}
+    level: 15
 --- !u!1 &2135426578
 GameObject:
   m_ObjectHideFlags: 0

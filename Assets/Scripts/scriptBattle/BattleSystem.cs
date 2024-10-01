@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum BattleState { Start, PlayerAction, PlayerMove, EnemyMove, Busy } // Busy = 공격중
+public enum BattleState { Start, PlayerAction, PlayerMove, EnemyMove, Busy, PartyScreen } // Busy = 공격중
 
 public class BattleSystem : MonoBehaviour
 {
@@ -22,6 +22,7 @@ public class BattleSystem : MonoBehaviour
     BattleState state;
     int currentAction;      // 현제는 0 = Fight, 1 = Run 추후 아이템, 교체 같은거 추가하면 변경될예정
     int currentSkill;
+    int currentMember;
 
     PokemonParty playerParty;
     Pokemon wildPokemon;
@@ -41,6 +42,10 @@ public class BattleSystem : MonoBehaviour
         else if (state == BattleState.PlayerMove)
         {
             HandleSkillSelection();
+        }
+        else if (state == BattleState.PartyScreen)
+        {
+            HandlePartySelection();
         }
     }
 
@@ -133,6 +138,73 @@ public class BattleSystem : MonoBehaviour
     }
 
 
+    void HandlePartySelection()
+    {
+        if (Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            ++currentMember;
+        }
+        else if (Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            --currentMember;
+        }
+        else if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            currentMember += 2;
+        }
+        else if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            currentMember -= 2;
+        }
+        currentMember = Mathf.Clamp(currentMember, 0, playerParty.Pokemons.Count - 1);
+
+        partyScreen.UpdateMemberSelection(currentMember);
+
+        if (Input.GetKeyDown(KeyCode.Z))
+        {
+            var selectedMember = playerParty.Pokemons[currentMember];
+            if (selectedMember.Hp <= 0)
+            {
+                partyScreen.SetMessageText("Pokemon is FAINTED");
+                return;
+            }
+            if (selectedMember == playerUnit.Pokemon)
+            {
+                partyScreen.SetMessageText("Pokemon is ALREADY out");
+                return;
+            }
+
+            partyScreen.gameObject.SetActive(false);
+            state = BattleState.Busy;
+            StartCoroutine(SwitchPokemon(selectedMember));
+        }
+        else if (Input.GetKeyDown(KeyCode.X))
+        {
+            partyScreen.gameObject.SetActive(false);
+            PlayerAction();
+        }
+    }
+    IEnumerator SwitchPokemon(Pokemon newPokemon)
+    {
+        yield return battleDialog.TypeDialog($"Come back {playerUnit.Pokemon.pBase.Name}");
+        playerUnit.PlayFaintAnimation(); // 교체애니메이션을 새로해도 되지만(왼쪽으로빠진다던가..) 일단 기절모션 재탕
+        yield return new WaitForSeconds(2f);
+
+        // 기절했을때 다음포켓몬 나오는 코드 재탕
+        playerUnit.Setup(newPokemon);
+        playerHud.SetData(newPokemon);
+
+        battleDialog.SetSkillNames(newPokemon.Skills);
+
+        // 코루틴 완료될때까지 기다리고 완료되면실행
+        yield return battleDialog.TypeDialog($"Go, {newPokemon.pBase.Name}!!! ");
+
+        // 상대차례
+        StartCoroutine(EnemyMove());
+
+    }
+
+
     public IEnumerator SetUpBattle()
     {
         // Party에 살아있는 포켓몬 확인하고 소환
@@ -167,7 +239,7 @@ public class BattleSystem : MonoBehaviour
     public void OpenPartyScreen()
     {
         Debug.Log("LoadPartyScreen");
-        print("PartyScrenLoaded");
+        state = BattleState.PartyScreen;
         partyScreen.SetPartyData(playerParty.Pokemons);
         partyScreen.gameObject.SetActive(true);
     }
@@ -265,7 +337,7 @@ public class BattleSystem : MonoBehaviour
                 battleDialog.SetSkillNames(nextPokemon.Skills);
 
                 // 코루틴 완료될때까지 기다리고 완료되면실행
-                yield return battleDialog.TypeDialog($"Go REVENGE {nextPokemon.pBase.Name}!!! ");
+                yield return battleDialog.TypeDialog($"Go REVENGE!!! {nextPokemon.pBase.Name}!!! ");
 
                 PlayerAction();
             }
