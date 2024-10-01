@@ -21,8 +21,13 @@ public class BattleSystem : MonoBehaviour
     int currentAction;      // 현제는 0 = Fight, 1 = Run 추후 아이템, 교체 같은거 추가하면 변경될예정
     int currentSkill;
 
-    public void StartBattle()
+    PokemonParty playerParty;
+    Pokemon wildPokemon;
+
+    public void StartBattle(PokemonParty playerParty, Pokemon wildPokemon)
     {
+        this.playerParty = playerParty;
+        this.wildPokemon = wildPokemon;
         StartCoroutine(SetUpBattle());
     }
     public void HandleUpdate()
@@ -105,10 +110,10 @@ public class BattleSystem : MonoBehaviour
 
     public IEnumerator SetUpBattle()
     {
-        playerUnit.Setup();
+        playerUnit.Setup(playerParty.GetHealthyPokemon());
         playerHud.SetData(playerUnit.Pokemon);
 
-        enemyUnit.Setup();
+        enemyUnit.Setup(wildPokemon);
         enemyHud.SetData(enemyUnit.Pokemon);
 
         battleDialog.SetSkillNames(playerUnit.Pokemon.Skills);
@@ -206,7 +211,27 @@ public class BattleSystem : MonoBehaviour
             playerUnit.PlayFaintAnimation();
 
             yield return new WaitForSeconds(2f);
-            OnBattleOver(false); //플레이어 패배
+
+
+            // 싸우던포켓몬 죽으면 살아있는 포켓몬있나 찾고있으면 내보내기
+            var nextPokemon =  playerParty.GetHealthyPokemon();
+            if (nextPokemon != null)
+            {
+                playerUnit.Setup(nextPokemon);
+                playerHud.SetData(nextPokemon);
+
+                battleDialog.SetSkillNames(nextPokemon.Skills);
+
+                // 코루틴 완료될때까지 기다리고 완료되면실행
+                yield return battleDialog.TypeDialog($"Go REVENGE {nextPokemon.pBase.Name}!!! ");
+
+                PlayerAction();
+            }
+            else
+            {
+                OnBattleOver(false); //플레이어 패배
+            }
+
         }
         else  // 데미지 견디면 적 차례
         {

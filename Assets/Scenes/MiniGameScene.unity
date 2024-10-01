@@ -60130,6 +60130,7 @@ GameObject:
   - component: {fileID: 953304186}
   - component: {fileID: 953304185}
   - component: {fileID: 953304184}
+  - component: {fileID: 953304187}
   m_Layer: 10
   m_Name: BattleField
   m_TagString: Untagged
@@ -74513,6 +74514,25 @@ TilemapCollider2D:
   m_Offset: {x: 0, y: 0}
   m_MaximumTileChangeCount: 1000
   m_ExtrusionFactor: 0
+--- !u!114 &953304187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 953304180}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f47c60196f10a74786f45852846aad2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  wildPokemons:
+  - pokeBase: {fileID: 11400000, guid: 28b0b113dabd24242872d61435307d8a, type: 2}
+    level: 5
+  - pokeBase: {fileID: 11400000, guid: aedb95f2b03c0574f9b9677cd44d3c04, type: 2}
+    level: 5
+  - pokeBase: {fileID: 11400000, guid: 5d89f9c418984d447950413f8a1b5e5b, type: 2}
+    level: 5
 --- !u!1 &955429651
 GameObject:
   m_ObjectHideFlags: 0
@@ -78543,8 +78563,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e011c28651e80048861d500e024284d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pBase: {fileID: 11400000, guid: 28b0b113dabd24242872d61435307d8a, type: 2}
-  level: 5
   isPlayerUnit: 0
 --- !u!1 &1450968497
 GameObject:
@@ -80092,8 +80110,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e011c28651e80048861d500e024284d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pBase: {fileID: 11400000, guid: aedb95f2b03c0574f9b9677cd44d3c04, type: 2}
-  level: 7
   isPlayerUnit: 1
 --- !u!1 &2009639501
 GameObject:
@@ -80436,6 +80452,7 @@ GameObject:
   - component: {fileID: 2090297732}
   - component: {fileID: 2090297735}
   - component: {fileID: 2090297736}
+  - component: {fileID: 2090297737}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -80571,6 +80588,23 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &2090297737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2090297731}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d34e2fc72b4ddb74dad25156d683c05d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pokemons:
+  - pokeBase: {fileID: 11400000, guid: aedb95f2b03c0574f9b9677cd44d3c04, type: 2}
+    level: 7
+  - pokeBase: {fileID: 11400000, guid: 5d89f9c418984d447950413f8a1b5e5b, type: 2}
+    level: 7
 --- !u!1 &2135426578
 GameObject:
   m_ObjectHideFlags: 0

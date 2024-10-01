@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b3077218f226604cb154a6687051872, type: 3}
+  m_Name: Squirtle
+  m_EditorClassIdentifier: 
+  name: Squirtle
+  description: The shell is soft when it is born. It soon becomes so resilient, prodding
+    fingers will bounce off it.
+  frontSprite: {fileID: 1645174631, guid: d06e198009e8c5f4d8c19f0afa4abbed, type: 3}
+  backSprite: {fileID: 1054149771, guid: 25c1a51b5b660304485e06c53066dafb, type: 3}
+  type1: 3
+  type2: 0
+  hp: 44
+  attack: 48
+  defense: 65
+  sAttack: 50
+  sDefense: 64
+  speed: 43
+  learnableSkills:
+  - skillBase: {fileID: 11400000, guid: 71e744a6b683664438edd88f6c2ab7ef, type: 2}
+    level: 1
+  - skillBase: {fileID: 11400000, guid: 8c27281a90b5e674fa91f9b44106a93d, type: 2}
+    level: 1
+  - skillBase: {fileID: 11400000, guid: 9d978426ecf05d24b8bd706b3d17143d, type: 2}
+    level: 3

@@ -6,8 +6,9 @@ using DG.Tweening; //Dotween불러오기
 
 public class BattleUnit : MonoBehaviour
 {
-    [SerializeField] PokemonBase pBase;
-    [SerializeField] int level;
+    // 하드코딩으로 불러오는 방식에서 변경위해 이제 비활성화
+    // [SerializeField] PokemonBase pBase;
+    // [SerializeField] int level;
     [SerializeField] bool isPlayerUnit;
 
     public Pokemon Pokemon {  get; set; }
@@ -29,9 +30,9 @@ public class BattleUnit : MonoBehaviour
         // 맞으면 색변경위해 오리지날색 저장
         originalColor = image.color;
     }
-    public void Setup()
+    public void Setup(Pokemon pokemon) // Parameter에서 받아오기
     {
-        Pokemon = new Pokemon(pBase, level);
+        Pokemon = pokemon;
         if (isPlayerUnit)
         {
             image.sprite = Pokemon.pBase.BackSprite;

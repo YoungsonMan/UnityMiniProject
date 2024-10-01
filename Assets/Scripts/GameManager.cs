@@ -18,7 +18,10 @@ public class GameManager : MonoBehaviour
         battleSystem.gameObject.SetActive(true);
         worldCamera.gameObject.SetActive(false);
 
-        battleSystem.StartBattle();
+        var playerParty = playerController.GetComponent<PokemonParty>();
+        var wildPokemon = FindObjectOfType<MapArea>().GetComponent<MapArea>().PopRandomWildPokemon();
+
+        battleSystem.StartBattle(playerParty, wildPokemon);
     }
     void EndBattle(bool won)
     {

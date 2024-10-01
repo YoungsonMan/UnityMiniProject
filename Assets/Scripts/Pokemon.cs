@@ -3,18 +3,31 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 
+
+
+[System.Serializable] //인스펙터에서만 보이게
 public class Pokemon 
 {
-    public PokemonBase pBase { get; set; }
-    public int Level { get; set; }
+    [SerializeField] PokemonBase pokeBase;
+    [SerializeField] int level;
 
+    
+
+    public PokemonBase pBase
+    {
+        get { return pokeBase; }
+    }
+    public int Level
+    {
+        get { return level; }
+    }
     public int curHP {  get; set; }    
 
     public List<Skill> Skills {  get; set; }
-    public Pokemon(PokemonBase pokeBase, int pokeLevel)
+    public void Init() // 얘도 이제 이니셜라이즈 Initialization
     {
-        pBase = pokeBase;
-        Level = pokeLevel;
+        // pBase = pokeBase;  이제 인스펙터에서 할거라 필요없어서 없애기
+        // Level = pokeLevel;
         curHP = Hp;
 
 

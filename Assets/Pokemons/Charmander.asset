@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Charmander
   m_EditorClassIdentifier: 
   name: Charmander
-  description: 
+  description: The flame on its tail shows the strength of its life force. If it
+    is weak, the flame also burns weakly.
   frontSprite: {fileID: 291923130, guid: d06e198009e8c5f4d8c19f0afa4abbed, type: 3}
   backSprite: {fileID: 2134753764, guid: 25c1a51b5b660304485e06c53066dafb, type: 3}
   type1: 2
