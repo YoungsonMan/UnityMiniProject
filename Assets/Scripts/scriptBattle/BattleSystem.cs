@@ -76,7 +76,7 @@ public class BattleSystem : MonoBehaviour
             if (currentAction == 0)
             {
                 // Fight
-                PlayerMove();
+                MoveSelection();
             }
             else if (currentAction == 1)
             {
@@ -124,14 +124,14 @@ public class BattleSystem : MonoBehaviour
         {
             battleDialog.EnableSkillSelector(false);
             battleDialog.EnableDialogText(true);
-            StartCoroutine(PerformPlayerSkill());
+            StartCoroutine(PlayerMove());
         }
         // X키로 취소
         else if (Input.GetKeyDown(KeyCode.X))
         {
             battleDialog.EnableSkillSelector(false);
             battleDialog.EnableDialogText(true);
-            PlayerAction();
+            ActionSelection();
         }
     }
 
@@ -179,7 +179,7 @@ public class BattleSystem : MonoBehaviour
         else if (Input.GetKeyDown(KeyCode.X))
         {
             partyScreen.gameObject.SetActive(false);
-            PlayerAction();
+            ActionSelection();
         }
     }
 
@@ -228,10 +228,10 @@ public class BattleSystem : MonoBehaviour
         // 코루틴 완료될때까지 기다리고 완료되면실행
         yield return battleDialog.TypeDialog($"A wild {enemyUnit.Pokemon.pBase.Name} appeared."); 
 
-        PlayerAction();
+        ActionSelection();
     }
 
-    public void PlayerAction()
+    public void ActionSelection()
     {
         state = BattleState.PlayerAction;
         battleDialog.SetDialog("Choose an action");
@@ -247,7 +247,7 @@ public class BattleSystem : MonoBehaviour
         partyScreen.gameObject.SetActive(true);
     }
 
-    public void PlayerMove()
+    public void MoveSelection()
     {
         state = BattleState.PlayerMove;
         battleDialog.EnableActionSelector(false);
@@ -257,7 +257,7 @@ public class BattleSystem : MonoBehaviour
 
 
     // 플레이어 ---공격---> 적
-    IEnumerator PerformPlayerSkill()
+    IEnumerator PlayerMove()
     {
         // 플레이어가 계속 스킬선택할수있음으로, 상태를 Busy로
         state = BattleState.Busy;
@@ -354,7 +354,7 @@ public class BattleSystem : MonoBehaviour
         }
         else  // 데미지 견디면 적 차례
         {
-            PlayerAction();
+            ActionSelection();
         }
     }
 
