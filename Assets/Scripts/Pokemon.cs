@@ -24,12 +24,13 @@ public class Pokemon
     public int curHP {  get; set; }    
 
     public List<Skill> Skills {  get; set; }
+
+    public Dictionary<Stat, int> Stats { get; private set; }
+
     public void Init() // 얘도 이제 이니셜라이즈 Initialization
     {
-        // pBase = pokeBase;  이제 인스펙터에서 할거라 필요없어서 없애기
-        // Level = pokeLevel;
-        curHP = Hp;
 
+        
 
         // 스킬생성
         Skills = new List<Skill>();
@@ -40,32 +41,54 @@ public class Pokemon
             if (Skills.Count >= 4)
                 break;
         }
+        CalculateStats();
+        curHP = Hp;
     }
 
-    public int Hp
+    void CalculateStats()
     {
-        // 실제 포켓몬게임에 수치 정하는 공식.
-        get { return Mathf.FloorToInt((pBase.HP * Level) / 100f) + 10; }
+        Stats = new Dictionary<Stat, int>();
+        Stats.Add(Stat.Attack, Mathf.FloorToInt((pBase.Attack * Level) / 100f) + 5);
+        Stats.Add(Stat.Defense, Mathf.FloorToInt((pBase.Defense * Level) / 100f) + 5);
+        Stats.Add(Stat.SpecialAttack, Mathf.FloorToInt((pBase.SpecialAttack * Level) / 100f) + 5);
+        Stats.Add(Stat.SpecialDefense, Mathf.FloorToInt((pBase.SpecialDefense * Level) / 100f) + 5);
+        Stats.Add(Stat.Attack, Mathf.FloorToInt((pBase.Speed * Level) / 100f) + 5);
+
+        Hp = Mathf.FloorToInt((pBase.HP * Level) / 100f) + 10;
     }
+
+
+
+    int GetStat(Stat stat)
+    {
+        int statVal = Stats[stat];
+
+        // stat에 +- 영향주는 버프/디버프형 스킬 복잡해지니까 이런식으로
+
+        return statVal;
+    }
+    // Dictionary사용으로 계속 계산안하게하기
+
+    public int Hp { get; private set; }
     public int Attack
     {
-        get { return Mathf.FloorToInt((pBase.Attack * Level) / 100f) + 5; }
+        get { return GetStat(Stat.Attack); }
     }
     public int Defense
     {
-        get { return Mathf.FloorToInt((pBase.Defense * Level) / 100f) + 5; }
+        get { return GetStat(Stat.Defense); }
     }
     public int SpecialAttack
     {
-        get { return Mathf.FloorToInt((pBase.SpecialAttack * Level) / 100f) + 5; }
+        get { return GetStat(Stat.SpecialAttack); }
     }
     public int SpecialDefense
     {
-        get { return Mathf.FloorToInt((pBase.SpecialDefense * Level) / 100f) + 5; }
+        get { return GetStat(Stat.SpecialDefense); }
     }
     public int Speed
     {
-        get { return Mathf.FloorToInt((pBase.Speed * Level) / 100f) + 5; }
+        get { return GetStat(Stat.Speed); }
     }
 
     public DamageDetails TakeDamage(Skill skill, Pokemon attacker)

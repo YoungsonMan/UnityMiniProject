@@ -124,6 +124,14 @@ public enum PokemonType
     Fairy
 }
 
+public enum Stat
+{
+    Attack,
+    Defense,
+    SpecialAttack,
+    SpecialDefense,
+    Speed
+}
 public class TypeChart
 {
     // 타입차트 csv 구글에있는거 찾아서 받았는데 일단 몇가지만 직접짜서 구현하고 나중에 csv불러와서 해보기.
