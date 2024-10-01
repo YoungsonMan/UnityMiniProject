@@ -52,7 +52,7 @@ public class Pokemon
         Stats.Add(Stat.Defense, Mathf.FloorToInt((pBase.Defense * Level) / 100f) + 5);
         Stats.Add(Stat.SpecialAttack, Mathf.FloorToInt((pBase.SpecialAttack * Level) / 100f) + 5);
         Stats.Add(Stat.SpecialDefense, Mathf.FloorToInt((pBase.SpecialDefense * Level) / 100f) + 5);
-        Stats.Add(Stat.Attack, Mathf.FloorToInt((pBase.Speed * Level) / 100f) + 5);
+        Stats.Add(Stat.Speed, Mathf.FloorToInt((pBase.Speed * Level) / 100f) + 5);
 
         Hp = Mathf.FloorToInt((pBase.HP * Level) / 100f) + 10;
     }
