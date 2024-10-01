@@ -261,101 +261,19 @@ public class BattleSystem : MonoBehaviour
     {
         // 플레이어가 계속 스킬선택할수있음으로, 상태를 Busy로 PerformMove로 변경
         state = BattleState.PerformMove;
-
         var skill = playerUnit.Pokemon.Skills[currentSkill];
-        // 스킬 사용시 PP 감소
-        skill.PP--;
-        // 데미지 가하기
-        yield return battleDialog.TypeDialog($"{playerUnit.Pokemon.pBase.Name} used {skill.Base.Name}");
-
-        // 공격애니메이션
-        playerUnit.PlayAttackAnimation();
-        yield return new WaitForSeconds(1f); // 피깎이는시간 기달리기
-        // 공격 => 상대방 깜빡(색바뀌기)
-        enemyUnit.PlayHitAnimation();
-
-        var damageDetails = enemyUnit.Pokemon.TakeDamage(skill, playerUnit.Pokemon);
-        // 공격받은대상(적) 피통업데이트(HP - DMG)
-        yield return enemyHud.UpdateHP();
-        // 데미지효율 코루틴
-        yield return ShowDamageDetails(damageDetails);
-
-        // 데미지 받다가 죽음
-        if (damageDetails.Fainted)
-        {
-            yield return battleDialog.TypeDialog($"{enemyUnit.Pokemon.pBase.Name} Fainted");
-            enemyUnit.PlayFaintAnimation();
-
-            yield return new WaitForSeconds(2f);
-            OnBattleOver(true); //플레이어 승리
-        }
-        else  // 데미지 견디면 적 차례
-        {
-            StartCoroutine(EnemyMove());
-        }
+        yield return RunMove(playerUnit, enemyUnit, skill);
+        StartCoroutine(EnemyMove());
     }
-
 
     // 적 ---공격---> 플레이어
     IEnumerator EnemyMove()
     {
         state = BattleState.PerformMove;
-
         // 일단 랜덤스킬 고르기
         var skill = enemyUnit.Pokemon.GetRandomSkill();
-        // 스킬 사용시 PP 감소
-        skill.PP--;
-        //적 -> 플레이어, 데미지 가하기
-        yield return battleDialog.TypeDialog($"{enemyUnit.Pokemon.pBase.Name} used {skill.Base.Name}");
-
-
-        // 공격애니메이션
-        enemyUnit.PlayAttackAnimation();
-        yield return new WaitForSeconds(1f); // 피깎이는시간 기달리기
-        // 공격 => 상대방(player) 깜빡(색바뀌기)
-        playerUnit.PlayHitAnimation();
-
-        var damageDetails = playerUnit.Pokemon.TakeDamage(skill, enemyUnit.Pokemon);
-        // 공격받은대상(플레이어) 피통업데이트(HP - DMG)
-        yield return playerHud.UpdateHP();
-        // 데미지효율 코루틴
-        yield return ShowDamageDetails(damageDetails);
-
-        // 데미지 받다가 죽음
-        if (damageDetails.Fainted)
-        {
-            yield return battleDialog.TypeDialog($"{playerUnit.Pokemon.pBase.Name} Fainted");
-            playerUnit.PlayFaintAnimation();
-
-            yield return new WaitForSeconds(2f);
-
-
-            // 싸우던포켓몬 죽으면 살아있는 포켓몬있나 찾기
-            var nextPokemon =  playerParty.GetHealthyPokemon();
-            if (nextPokemon != null)
-            {
-                OpenPartyScreen();
-                /*  나중에 설정에서 죽으면 바로 "다음포켓몬내보내기" 활성화하게되면 다시쓰고
-                 *  죽으면 이제 포켓몬 선택해서 내보내게 하기
-                    playerUnit.Setup(nextPokemon);
-                    playerHud.SetData(nextPokemon);
-                    battleDialog.SetSkillNames(nextPokemon.Skills);
-                    // 코루틴 완료될때까지 기다리고 완료되면실행
-                    yield return battleDialog.TypeDialog($"Go REVENGE!!! {nextPokemon.pBase.Name}!!! ");
-                    PlayerAction();
-                */
-            }
-            else
-            {
-                // 없으면 플레이어 패배
-                OnBattleOver(false); 
-            }
-
-        }
-        else  // 데미지 견디면 적 차례
-        {
-            ActionSelection();
-        }
+        yield return RunMove(enemyUnit, playerUnit, skill);
+        ActionSelection();
     }
 
     // 플레이어 공격 | 적 공격이 같은로직에 상반되는 방식이여서
