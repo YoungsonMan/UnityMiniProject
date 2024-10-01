@@ -10,6 +10,10 @@ public class BattleUnit : MonoBehaviour
     // [SerializeField] PokemonBase pBase;
     // [SerializeField] int level;
     [SerializeField] bool isPlayerUnit;
+    public bool IsPlayerUnit
+    {  
+        get { return isPlayerUnit; } 
+    }
 
     public Pokemon Pokemon {  get; set; }
 

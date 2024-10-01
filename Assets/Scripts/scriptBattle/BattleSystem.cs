@@ -358,6 +358,62 @@ public class BattleSystem : MonoBehaviour
         }
     }
 
+    // 플레이어 공격 | 적 공격이 같은로직에 상반되는 방식이여서
+    // 상태공격등 스킬의 변수들 더 추가하면 더 복잡해지므로 캡슐화
+    IEnumerator RunMove(BattleUnit sourceUnit, BattleUnit targetUnit, Skill skill)
+    {
+        // 스킬 사용시 PP 감소
+        skill.PP--;
+        // 데미지 가하기
+        yield return battleDialog.TypeDialog($"{sourceUnit.Pokemon.pBase.Name} used {skill.Base.Name}");
+
+        // 공격애니메이션
+        sourceUnit.PlayAttackAnimation();
+        yield return new WaitForSeconds(1f); // 피깎이는시간 기달리기
+        // 공격 => 상대방 깜빡(색바뀌기)
+        targetUnit.PlayHitAnimation();
+
+        var damageDetails = targetUnit.Pokemon.TakeDamage(skill, sourceUnit.Pokemon);
+        // 공격받은대상(적) 피통업데이트(HP - DMG)
+        yield return enemyHud.UpdateHP();
+        // 데미지효율 코루틴
+        yield return ShowDamageDetails(damageDetails);
+
+        // 데미지 받다가 죽음
+        if (damageDetails.Fainted)
+        {
+            yield return battleDialog.TypeDialog($"{targetUnit.Pokemon.pBase.Name} Fainted");
+            targetUnit.PlayFaintAnimation();
+
+            yield return new WaitForSeconds(2f);
+
+            CheckForBattleOver(targetUnit);
+
+        }
+    }
+
+    void CheckForBattleOver(BattleUnit faintedUnit)
+    {
+        // 기절한게 플레이어인지 적인지구분
+        if (faintedUnit.IsPlayerUnit)
+        {
+            var nextPokemon = playerParty.GetHealthyPokemon();
+            if (nextPokemon != null)
+            {
+                OpenPartyScreen();
+            }
+            else
+            {
+                // 없으면 플레이어 패배
+                OnBattleOver(false);
+            }
+        }
+        else
+        {
+            OnBattleOver(true);
+        }
+    }
+
     IEnumerator ShowDamageDetails(DamageDetails damageDetails)
     {
         if (damageDetails.Critical > 1f)
