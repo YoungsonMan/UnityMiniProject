@@ -141,7 +141,11 @@ public class BattleSystem : MonoBehaviour
         // 데미지 가하기
         yield return battleDialog.TypeDialog($"{playerUnit.Pokemon.pBase.Name} used {skill.Base.Name}");
 
-
+        // 공격애니메이션
+        playerUnit.PlayAttackAnimation();
+        yield return new WaitForSeconds(1f); // 피깎이는시간 기달리기
+        // 공격 => 상대방 깜빡(색바뀌기)
+        enemyUnit.PlayHitAnimation();
 
         var damageDetails = enemyUnit.Pokemon.TakeDamage(skill, playerUnit.Pokemon);
         // 공격받은대상(적) 피통업데이트(HP - DMG)
@@ -153,6 +157,7 @@ public class BattleSystem : MonoBehaviour
         if (damageDetails.Fainted)
         {
             yield return battleDialog.TypeDialog($"{enemyUnit.Pokemon.pBase.Name} Fainted");
+            enemyUnit.PlayFaintAnimation();
         }
         else  // 데미지 견디면 적 차례
         {
@@ -166,10 +171,18 @@ public class BattleSystem : MonoBehaviour
     {
         state = BattleState.EnemyMove;
 
+        // 일단 랜덤스킬 고르기
         var skill = enemyUnit.Pokemon.GetRandomSkill();
+
+        //적 -> 플레이어, 데미지 가하기
         yield return battleDialog.TypeDialog($"{enemyUnit.Pokemon.pBase.Name} used {skill.Base.Name}");
 
 
+        // 공격애니메이션
+        enemyUnit.PlayAttackAnimation();
+        yield return new WaitForSeconds(1f); // 피깎이는시간 기달리기
+        // 공격 => 상대방(player) 깜빡(색바뀌기)
+        playerUnit.PlayHitAnimation();
 
         var damageDetails = playerUnit.Pokemon.TakeDamage(skill, enemyUnit.Pokemon);
         // 공격받은대상(플레이어) 피통업데이트(HP - DMG)
@@ -181,6 +194,7 @@ public class BattleSystem : MonoBehaviour
         if (damageDetails.Fainted)
         {
             yield return battleDialog.TypeDialog($"{playerUnit.Pokemon.pBase.Name} Fainted");
+            playerUnit.PlayFaintAnimation();
         }
         else  // 데미지 견디면 적 차례
         {
