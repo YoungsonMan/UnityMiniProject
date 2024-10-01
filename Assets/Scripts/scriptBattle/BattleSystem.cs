@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,15 +15,17 @@ public class BattleSystem : MonoBehaviour
 
     [SerializeField] BattleDialogBox battleDialog;
 
+    public event Action<bool> OnBattleOver; // bool을 줘서 승패를 가릴수 있게
+
     BattleState state;
     int currentAction;      // 현제는 0 = Fight, 1 = Run 추후 아이템, 교체 같은거 추가하면 변경될예정
     int currentSkill;
 
-    private void Start()
+    public void StartBattle()
     {
         StartCoroutine(SetUpBattle());
     }
-    private void Update()
+    public void HandleUpdate()
     {
         if (state == BattleState.PlayerAction)
         {
@@ -138,6 +141,8 @@ public class BattleSystem : MonoBehaviour
         state = BattleState.Busy;
 
         var skill = playerUnit.Pokemon.Skills[currentSkill];
+        // 스킬 사용시 PP 감소
+        skill.PP--;
         // 데미지 가하기
         yield return battleDialog.TypeDialog($"{playerUnit.Pokemon.pBase.Name} used {skill.Base.Name}");
 
@@ -158,6 +163,9 @@ public class BattleSystem : MonoBehaviour
         {
             yield return battleDialog.TypeDialog($"{enemyUnit.Pokemon.pBase.Name} Fainted");
             enemyUnit.PlayFaintAnimation();
+
+            yield return new WaitForSeconds(2f);
+            OnBattleOver(true); //플레이어 승리
         }
         else  // 데미지 견디면 적 차례
         {
@@ -173,7 +181,8 @@ public class BattleSystem : MonoBehaviour
 
         // 일단 랜덤스킬 고르기
         var skill = enemyUnit.Pokemon.GetRandomSkill();
-
+        // 스킬 사용시 PP 감소
+        skill.PP--;
         //적 -> 플레이어, 데미지 가하기
         yield return battleDialog.TypeDialog($"{enemyUnit.Pokemon.pBase.Name} used {skill.Base.Name}");
 
@@ -195,6 +204,9 @@ public class BattleSystem : MonoBehaviour
         {
             yield return battleDialog.TypeDialog($"{playerUnit.Pokemon.pBase.Name} Fainted");
             playerUnit.PlayFaintAnimation();
+
+            yield return new WaitForSeconds(2f);
+            OnBattleOver(false); //플레이어 패배
         }
         else  // 데미지 견디면 적 차례
         {

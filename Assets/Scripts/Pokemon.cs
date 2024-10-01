@@ -83,7 +83,7 @@ public class Pokemon
             일단 참고영상에서 나온거쓰고 추후 수정하기.
           */
 
-        // Critical 확률 stage(0~4)마다 다름 (일단 4세대 기준으로 만들고있으니)
+        // Critical 확률 stage(0~4)마다 다름 (일단 2세대 기준으로 만들고있으니)
         // 0 = 1/16, 1 = 1/8, 2 = 1/4, 3 = 1/3, 4 = 1/2
         // 6.25% => 12.5% => 25% => 50%
         float critical = 1f;
@@ -102,10 +102,17 @@ public class Pokemon
             Fainted = false
         };
 
+        // 특공베이스 스킬데미지 (2세대 기준, 송성공격은 다 특공베이스로들어감)
+        // 특공수치의 공격이면 리턴스페셜
+        // 특공은 특방수치로 댐감
+        float attack = (skill.Base.IsSpecial) ? attacker.SpecialAttack : attacker.Attack;
+        float defense = (skill.Base.IsSpecial) ? SpecialDefense : Defense;
+
+
         // 여기서도 그냥 랜덤요소로 퉁치고 가는데 나중에 기회되면 수정
         float modifiers = Random.Range(0.85f, 1f) * type * critical; 
         float a = (2 * attacker.Level + 10) / 250f; // 나중에 50나누는걸 여기서 250으로.
-        float d = a * skill.Base.Power * ((float)attacker.Attack / Defense) + 2;
+        float d = a * skill.Base.Power * ((float)attack / defense) + 2;
         int damage = Mathf.FloorToInt(d * modifiers);
 
 

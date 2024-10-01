@@ -11,6 +11,9 @@ public class PlayerController : MonoBehaviour
     // private float y;
 
 
+    public event Action OnEncounter;
+
+
     [SerializeField] float moveSpeed;
     [SerializeField] float runSpeed;
     [SerializeField] bool isMoving;
@@ -104,6 +107,13 @@ public class PlayerController : MonoBehaviour
             if (Random.Range(1, 101) <= 50) 
             {
                 Debug.Log("야생의 포켓몬이 튀어나왔다!");
+                animator.SetBool("isMoving", false);
+                int checkAniHash = idle;
+                curAniHash = checkAniHash;
+                // 현제애니해시도 바궜는데왜 안멈출까
+                //moveSpeed = 0;  // 속도도 0으로 했는데 애니메이션이 계속돌아가는건 유니티 잡 버그겠지... 껐다키면 바뀌겠지...
+                // 위에 애니메이션멈춘다고 속도 0으로해서 안움직이는거였음.
+                OnEncounter();
             }
         }
     }
@@ -170,7 +180,7 @@ public class PlayerController : MonoBehaviour
     }
 
 
-    void Update()
+    public void HandleUpdate()
     {
         pMove();
         pRun();
