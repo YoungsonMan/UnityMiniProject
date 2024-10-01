@@ -28,8 +28,9 @@ public class Pokemon
     public Dictionary<Stat, int> Stats { get; private set; }
 
     // 스탯변동 (+-6단계 있다고함)
-    // 버프
     public Dictionary<Stat, int> StatBoosts { get; private set; }
+
+    public Queue<string> StatusChanges { get; private set; } = new Queue<string>();
 
     public void Init() // 얘도 이제 이니셜라이즈 Initialization
     {
@@ -46,14 +47,7 @@ public class Pokemon
         CalculateStats();
         curHP = Hp;
 
-        StatBoosts = new Dictionary<Stat, int>()
-        {
-            {Stat.Attack, 0 },
-            {Stat.Defense, 0 },
-            {Stat.SpecialAttack, 0 },
-            {Stat.SpecialDefense, 0 },
-            {Stat.Speed, 0 },
-        };
+        ResetStatBoost(); 
 
     }
 
@@ -69,6 +63,17 @@ public class Pokemon
         Hp = Mathf.FloorToInt((pBase.HP * Level) / 100f) + 10;
     }
 
+    void ResetStatBoost()
+    {
+        StatBoosts = new Dictionary<Stat, int>()
+        {
+            {Stat.Attack, 0 },
+            {Stat.Defense, 0 },
+            {Stat.SpecialAttack, 0 },
+            {Stat.SpecialDefense, 0 },
+            {Stat.Speed, 0 },
+        }; 
+    }
 
     // stat에 +- 영향주는 버프/디버프형 스킬 복잡해지니까 이런식으로
     int GetStat(Stat stat)
@@ -101,8 +106,16 @@ public class Pokemon
 
             StatBoosts[stat] = Mathf.Clamp(StatBoosts[stat] + boost, -6, 6);
 
-            Debug.Log($"{stat} has been boosted to {StatBoosts[stat]}");
+            if (boost > 0)
+            {
+                StatusChanges.Enqueue($"{pBase.Name}'s {stat} ROSE!");
+            }
+            else
+            {
+                StatusChanges.Enqueue($"{pBase.Name}'s {stat} FELL!");
+            }
 
+            Debug.Log($"{stat} has been boosted to {StatBoosts[stat]}");
         }
     }
 
@@ -207,6 +220,10 @@ public class Pokemon
         // 나중에 공격패턴(좀더 스마트한 공격을위한) 방식 구현하기 
         int r = Random.Range(0, Skills.Count);
         return Skills[r];
+    }
+    public void OnBattleOver()
+    {
+        ResetStatBoost();
     }
 }
 

@@ -227,6 +227,7 @@ public class BattleSystem : MonoBehaviour
     public void BattleOver(bool won) // GameManager에서 배틀끝났나 알수있게
     {
         state = BattleState.BattleOver;
+        playerParty.Pokemons.ForEach(p => p.OnBattleOver()); // Foreach, Link이용해 짧게 작성
         OnBattleOver(won);
     }
 
@@ -314,6 +315,8 @@ public class BattleSystem : MonoBehaviour
                 {   // 상대방
                     targetUnit.Pokemon.ApplyBoosts(effects.Boosts);
                 }
+                yield return ShowStatusChanges(sourceUnit.Pokemon);
+                yield return ShowStatusChanges(targetUnit.Pokemon);
             }
         }
         else
@@ -339,6 +342,17 @@ public class BattleSystem : MonoBehaviour
 
         }
     }
+
+    IEnumerator ShowStatusChanges(Pokemon pokemon)
+    {
+        while (pokemon.StatusChanges.Count > 0)
+        {
+            var message = pokemon.StatusChanges.Dequeue(); 
+            yield return battleDialog.TypeDialog(message);  
+        } 
+
+    }
+
 
     void CheckForBattleOver(BattleUnit faintedUnit)
     {
