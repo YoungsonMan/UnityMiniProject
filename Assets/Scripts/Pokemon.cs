@@ -30,7 +30,9 @@ public class Pokemon
     // 스탯변동 (+-6단계 있다고함)
     public Dictionary<Stat, int> StatBoosts { get; private set; }
 
+    public Condition Status { get; private set; }
     public Queue<string> StatusChanges { get; private set; } = new Queue<string>();
+    public bool HpChanged { get; set; }
 
     public void Init() // 얘도 이제 이니셜라이즈 Initialization
     {
@@ -204,14 +206,19 @@ public class Pokemon
         int damage = Mathf.FloorToInt(d * modifiers);
 
 
-        curHP -= damage;
-        if (curHP <= 0)
-        {
-            // pokemon is fainted
-            curHP = 0; // 마이너스로 체력 안가게 0으로 설정
-            damageDetails.Fainted = true;
-        }
+        UpdateHP(damage);
+
         return damageDetails;
+    }
+    public void UpdateHP(int damage)
+    {
+        curHP = Mathf.Clamp(curHP - damage, 0, Hp);
+        HpChanged = true;
+    }
+    public void SetStatus(ConditionID conditionId)
+    {
+        Status = ConditionsDB.Conditions[conditionId];
+        StatusChanges.Enqueue($"{pBase.Name} {Status.StartMessage}");
     }
 
     public Skill GetRandomSkill()
@@ -221,9 +228,16 @@ public class Pokemon
         int r = Random.Range(0, Skills.Count);
         return Skills[r];
     }
+
+    public void OnAfterTurn()
+    {
+        Status?.OnAfterTurn?.Invoke(this); //sleep 이나 바로 효과나오는거 대비
+    }
+
     public void OnBattleOver()
     {
         ResetStatBoost();
+        Debug.Log("배틀시 스탯변경 초기화");
     }
 }
 

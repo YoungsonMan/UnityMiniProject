@@ -61,10 +61,15 @@ public class SkillBase : ScriptableObject
 public class SkillEffects
 {
     [SerializeField] List<StatBoost> boosts;
+    [SerializeField] ConditionID status;
 
     public List<StatBoost> Boosts
     {
         get { return boosts; }
+    }
+    public ConditionID Status
+    {
+        get { return status; }
     }
 }
 

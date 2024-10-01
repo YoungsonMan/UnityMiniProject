@@ -157,12 +157,12 @@ public class BattleSystem : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Z))
         {
             var selectedMember = playerParty.Pokemons[currentMember];
-            if (selectedMember.curHP <= 0) // 밑에 포켓몬 죽은다음에 다음포켓몬말고 선택하기 바꾸면서 이게 안됨
+            if (selectedMember.curHP <= 0) 
             {
                 partyScreen.SetMessageText("Pokemon is FAINTED");
                 return;
             }
-            if (selectedMember == playerUnit.Pokemon) //이건잘되는데
+            if (selectedMember == playerUnit.Pokemon) 
             {
                 partyScreen.SetMessageText("Pokemon is ALREADY out");
                 return;
@@ -179,11 +179,13 @@ public class BattleSystem : MonoBehaviour
         }
     }
 
-    // 포켓몬 교체|교대
+    // 포켓몬 교체|교대 함수
     IEnumerator SwitchPokemon(Pokemon newPokemon)
     {
+        bool currentPokemonFainted = true;
         if (playerUnit.Pokemon.curHP > 0) // 살아있는 포켓몬만 교대
         {
+            currentPokemonFainted = false;
             yield return battleDialog.TypeDialog($"Come back {playerUnit.Pokemon.pBase.Name}");
             playerUnit.PlayFaintAnimation(); // 교체애니메이션을 새로해도 되지만(왼쪽으로빠진다던가..) 일단 기절모션 재탕
             yield return new WaitForSeconds(2f);
@@ -197,12 +199,18 @@ public class BattleSystem : MonoBehaviour
         // 코루틴 완료될때까지 기다리고 완료되면실행
         yield return battleDialog.TypeDialog($"Go, {newPokemon.pBase.Name}!!! ");
 
-        // 상대차례
-        StartCoroutine(EnemyMove());
-
+        if (currentPokemonFainted)
+        {   // 이전포켓몬 기절해서 교대로 나온거면 플레이어턴
+            ChooseFirstTurn();
+        }
+        else
+        {   // 교체해서 들어온거면
+            // 상대차례
+            StartCoroutine(EnemyMove());
+        }
     }
 
-
+    // 배틀세팅하기 함수
     public IEnumerator SetUpBattle()
     {
         // Party에 살아있는 포켓몬 확인하고 소환
@@ -219,18 +227,34 @@ public class BattleSystem : MonoBehaviour
         battleDialog.SetSkillNames(playerUnit.Pokemon.Skills);
 
         // 코루틴 완료될때까지 기다리고 완료되면실행
-        yield return battleDialog.TypeDialog($"A wild {enemyUnit.Pokemon.pBase.Name} appeared."); 
+        yield return battleDialog.TypeDialog($"A wild {enemyUnit.Pokemon.pBase.Name} appeared.");
 
-        ActionSelection();
+        ChooseFirstTurn();
     }
 
-    public void BattleOver(bool won) // GameManager에서 배틀끝났나 알수있게
+    // 선빵함수
+    public void ChooseFirstTurn()
+    {
+        if (playerUnit.Pokemon.Speed >= enemyUnit.Pokemon.Speed)
+        {
+            ActionSelection();
+        }
+        else
+        {
+            StartCoroutine(EnemyMove());    
+        }
+    } //이후에 '전광석화'같이 무조건선빵떄리는 스킬 추가하면 변경...
+
+    // 배틀끝|종료 함수
+    public void BattleOver(bool won) 
     {
         state = BattleState.BattleOver;
         playerParty.Pokemons.ForEach(p => p.OnBattleOver()); // Foreach, Link이용해 짧게 작성
         OnBattleOver(won);
     }
 
+
+    // 행동선택 함수
     public void ActionSelection()
     {
         state = BattleState.ActionSelection;
@@ -238,7 +262,7 @@ public class BattleSystem : MonoBehaviour
         battleDialog.EnableActionSelector(true);
     }
 
-
+    // 파티창열기 함수
     public void OpenPartyScreen()
     {
         Debug.Log("LoadPartyScreen");
@@ -247,6 +271,7 @@ public class BattleSystem : MonoBehaviour
         partyScreen.gameObject.SetActive(true);
     }
 
+    // 기술선택 함수
     public void MoveSelection()
     {
         state = BattleState.MoveSelection;
@@ -256,7 +281,7 @@ public class BattleSystem : MonoBehaviour
     }
 
 
-    // 플레이어 ---공격---> 적
+    // 플레이어차례 함수: 플레이어 ---공격---> 적
     IEnumerator PlayerMove()
     {
         // 플레이어가 계속 스킬선택할수있음으로, 상태를 Busy로 PerformMove로 변경
@@ -271,7 +296,7 @@ public class BattleSystem : MonoBehaviour
         }
     }
 
-    // 적 ---공격---> 플레이어
+    // 적차례 함수: 적 ---공격---> 플레이어
     IEnumerator EnemyMove()
     {
         state = BattleState.PerformMove;
@@ -288,6 +313,7 @@ public class BattleSystem : MonoBehaviour
 
     // 플레이어 공격 | 적 공격이 같은로직에 상반되는 방식이여서
     // 상태공격등 스킬의 변수들 더 추가하면 더 복잡해지므로 캡슐화
+    // 행동함수
     IEnumerator RunMove(BattleUnit sourceUnit, BattleUnit targetUnit, Skill skill)
     {
         // 스킬 사용시 PP 감소
@@ -303,21 +329,7 @@ public class BattleSystem : MonoBehaviour
 
         if (skill.Base.Category == SkillCategory.Status)
         {
-            // 버프/디버프 대상확인
-            var effects = skill.Base.Effects;
-            if (effects.Boosts != null)
-            {
-                if (skill.Base.Target == SkillTarget.Self)
-                {   // 본인
-                    sourceUnit.Pokemon.ApplyBoosts(effects.Boosts); 
-                }
-                else
-                {   // 상대방
-                    targetUnit.Pokemon.ApplyBoosts(effects.Boosts);
-                }
-                yield return ShowStatusChanges(sourceUnit.Pokemon);
-                yield return ShowStatusChanges(targetUnit.Pokemon);
-            }
+            yield return RunSkillEffects(skill, sourceUnit.Pokemon, targetUnit.Pokemon);
         }
         else
         {
@@ -328,8 +340,6 @@ public class BattleSystem : MonoBehaviour
             yield return ShowDamageDetails(damageDetails);
 
         }
-
-
         // 데미지 받다가 죽음
         if (targetUnit.Pokemon.curHP <= 0)
         {
@@ -341,8 +351,50 @@ public class BattleSystem : MonoBehaviour
             CheckForBattleOver(targetUnit);
 
         }
+
+        // 상태이상 데미지 들어오는 함수
+        sourceUnit.Pokemon.OnAfterTurn();
+        yield return ShowStatusChanges(sourceUnit.Pokemon);
+        yield return sourceUnit.Hud.UpdateHP();
+        // 상태이상으로도 데미지 받다 죽을수 있으니 죽을수있게 설계
+        if (sourceUnit.Pokemon.curHP <= 0)
+        {
+            yield return battleDialog.TypeDialog($"{sourceUnit.Pokemon.pBase.Name} Fainted");
+            sourceUnit.PlayFaintAnimation();
+            yield return new WaitForSeconds(2f);
+            CheckForBattleOver(sourceUnit);
+        }
+    }
+    IEnumerator RunSkillEffects(Skill skill, Pokemon source, Pokemon target)
+    {
+        
+        var effects = skill.Base.Effects;
+
+        // 버프/디버프 대상확인
+        if (effects.Boosts != null)
+        {
+            if (skill.Base.Target == SkillTarget.Self)
+            {   // 본인
+                source.ApplyBoosts(effects.Boosts);
+            }
+            else
+            {   // 상대방
+                target.ApplyBoosts(effects.Boosts);
+            }
+
+            //상태이상
+            if (effects.Status != ConditionID.none)
+            {
+                target.SetStatus(effects.Status);   
+            }
+
+
+            yield return ShowStatusChanges(source);
+            yield return ShowStatusChanges(target);
+        }
     }
 
+    // 스탯변경 함수
     IEnumerator ShowStatusChanges(Pokemon pokemon)
     {
         while (pokemon.StatusChanges.Count > 0)
@@ -353,7 +405,7 @@ public class BattleSystem : MonoBehaviour
 
     }
 
-
+    // 배틀종로|끝났나 체크
     void CheckForBattleOver(BattleUnit faintedUnit)
     {
         // 기절한게 플레이어인지 적인지구분
@@ -368,6 +420,7 @@ public class BattleSystem : MonoBehaviour
             {
                 // 없으면 플레이어 패배
                 BattleOver(false);
+                Debug.Log("배틀에 패배했다. 눈앞이 깜깜해진다..\n 포켓몬센터 회복후 부활");
             }
         }
         else
@@ -376,6 +429,7 @@ public class BattleSystem : MonoBehaviour
         }
     }
 
+    // 데미지세부사항 함수
     IEnumerator ShowDamageDetails(DamageDetails damageDetails)
     {
         if (damageDetails.Critical > 1f)
