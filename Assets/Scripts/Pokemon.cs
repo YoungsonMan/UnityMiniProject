@@ -27,10 +27,12 @@ public class Pokemon
 
     public Dictionary<Stat, int> Stats { get; private set; }
 
+    // 스탯변동 (+-6단계 있다고함)
+    // 버프
+    public Dictionary<Stat, int> StatBoosts { get; private set; }
+
     public void Init() // 얘도 이제 이니셜라이즈 Initialization
     {
-
-        
 
         // 스킬생성
         Skills = new List<Skill>();
@@ -43,6 +45,16 @@ public class Pokemon
         }
         CalculateStats();
         curHP = Hp;
+
+        StatBoosts = new Dictionary<Stat, int>()
+        {
+            {Stat.Attack, 0 },
+            {Stat.Defense, 0 },
+            {Stat.SpecialAttack, 0 },
+            {Stat.SpecialDefense, 0 },
+            {Stat.Speed, 0 },
+        };
+
     }
 
     void CalculateStats()
@@ -58,12 +70,24 @@ public class Pokemon
     }
 
 
-
+    // stat에 +- 영향주는 버프/디버프형 스킬 복잡해지니까 이런식으로
     int GetStat(Stat stat)
     {
         int statVal = Stats[stat];
 
-        // stat에 +- 영향주는 버프/디버프형 스킬 복잡해지니까 이런식으로
+        // 스탯부스트 된거 적용
+        int boost = StatBoosts[stat];
+        var boostValues = new float[] { 1f, 1.5f, 2f, 2.5f, 3f, 3.5f, 4f };
+        // 스탯 변경하는데 6단계 가있다했는데 위에 숫자 순서대로 버프는곱하고 디버프는 나누기
+        // Ex. 단단해지기 하면 방어력 하나씩 올라가는거
+        if (boost >= 0)
+        {
+            statVal = Mathf.FloorToInt(statVal * boostValues[boost]);
+        }
+        else
+        {
+            statVal = Mathf.FloorToInt(statVal / boostValues[boost]);
+        }
 
         return statVal;
     }
