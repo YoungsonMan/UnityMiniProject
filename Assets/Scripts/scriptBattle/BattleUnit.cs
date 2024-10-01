@@ -10,13 +10,12 @@ public class BattleUnit : MonoBehaviour
     // [SerializeField] PokemonBase pBase;
     // [SerializeField] int level;
     [SerializeField] bool isPlayerUnit;
-    public bool IsPlayerUnit
-    {  
-        get { return isPlayerUnit; } 
-    }
+    [SerializeField] BattleHud hud;
+    public bool IsPlayerUnit { get { return isPlayerUnit; } }
+    public BattleHud Hud { get { return hud; } }
+
 
     public Pokemon Pokemon {  get; set; }
-
 
     //애니메이션 관련 
     Image image;
@@ -45,6 +44,9 @@ public class BattleUnit : MonoBehaviour
         {
             image.sprite = Pokemon.pBase.FrontSprite;
         }
+
+        hud.SetData(pokemon); 
+
         image.color = originalColor;
         PlayerEnterAnimation();
     }

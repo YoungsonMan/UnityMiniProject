@@ -3,18 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum BattleState { Start, ActionSelection, MoveSelection, PerformMove, Busy, PartyScreen } // Busy = 공격중
+public enum BattleState { Start, ActionSelection, MoveSelection, PerformMove, Busy, PartyScreen, BattleOver } // Busy = 공격중
 
 public class BattleSystem : MonoBehaviour
 {
     [SerializeField] BattleUnit playerUnit;
-    [SerializeField] BattleHud playerHud;
-
     [SerializeField] BattleUnit enemyUnit;
-    [SerializeField] BattleHud enemyHud;
 
     [SerializeField] BattleDialogBox battleDialog;
-
     [SerializeField] PartyScreen partyScreen;
 
     public event Action<bool> OnBattleOver; // bool을 줘서 승패를 가릴수 있게
@@ -195,7 +191,6 @@ public class BattleSystem : MonoBehaviour
 
         // 기절했을때 다음포켓몬 나오는 코드 재탕
         playerUnit.Setup(newPokemon);
-        playerHud.SetData(newPokemon);
 
         battleDialog.SetSkillNames(newPokemon.Skills);
 
@@ -212,11 +207,9 @@ public class BattleSystem : MonoBehaviour
     {
         // Party에 살아있는 포켓몬 확인하고 소환
         playerUnit.Setup(playerParty.GetHealthyPokemon());
-        playerHud.SetData(playerUnit.Pokemon);
 
         // 상대(야생포켓몬) 등장
         enemyUnit.Setup(wildPokemon);
-        enemyHud.SetData(enemyUnit.Pokemon);
 
         // 파티스크린
         partyScreen.Init();
@@ -229,6 +222,12 @@ public class BattleSystem : MonoBehaviour
         yield return battleDialog.TypeDialog($"A wild {enemyUnit.Pokemon.pBase.Name} appeared."); 
 
         ActionSelection();
+    }
+
+    public void BattleOver(bool won) // GameManager에서 배틀끝났나 알수있게
+    {
+        state = BattleState.BattleOver;
+        OnBattleOver(won);
     }
 
     public void ActionSelection()
@@ -263,7 +262,12 @@ public class BattleSystem : MonoBehaviour
         state = BattleState.PerformMove;
         var skill = playerUnit.Pokemon.Skills[currentSkill];
         yield return RunMove(playerUnit, enemyUnit, skill);
-        StartCoroutine(EnemyMove());
+
+        // 배틀상태가 RunMove로 바뀌는거 아니면 진행
+        if (state == BattleState.PerformMove)
+        {
+            StartCoroutine(EnemyMove());
+        }
     }
 
     // 적 ---공격---> 플레이어
@@ -273,7 +277,12 @@ public class BattleSystem : MonoBehaviour
         // 일단 랜덤스킬 고르기
         var skill = enemyUnit.Pokemon.GetRandomSkill();
         yield return RunMove(enemyUnit, playerUnit, skill);
-        ActionSelection();
+
+        // 배틀상태가 RunMove로 바뀌는거 아니면 진행
+        if (state == BattleState.PerformMove)
+        {
+            ActionSelection();
+        }
     }
 
     // 플레이어 공격 | 적 공격이 같은로직에 상반되는 방식이여서
@@ -293,7 +302,7 @@ public class BattleSystem : MonoBehaviour
 
         var damageDetails = targetUnit.Pokemon.TakeDamage(skill, sourceUnit.Pokemon);
         // 공격받은대상(적) 피통업데이트(HP - DMG)
-        yield return enemyHud.UpdateHP();
+        yield return targetUnit.Hud.UpdateHP();
         // 데미지효율 코루틴
         yield return ShowDamageDetails(damageDetails);
 
@@ -323,12 +332,12 @@ public class BattleSystem : MonoBehaviour
             else
             {
                 // 없으면 플레이어 패배
-                OnBattleOver(false);
+                BattleOver(false);
             }
         }
         else
         {
-            OnBattleOver(true);
+            BattleOver(true);
         }
     }
 
