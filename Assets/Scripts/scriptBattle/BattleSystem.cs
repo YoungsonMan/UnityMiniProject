@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum BattleState { Start, PlayerAction, PlayerMove, EnemyMove, Busy, PartyScreen } // Busy = 공격중
+public enum BattleState { Start, ActionSelection, MoveSelection, PerformMove, Busy, PartyScreen } // Busy = 공격중
 
 public class BattleSystem : MonoBehaviour
 {
@@ -35,11 +35,11 @@ public class BattleSystem : MonoBehaviour
     }
     public void HandleUpdate()
     {
-        if (state == BattleState.PlayerAction)
+        if (state == BattleState.ActionSelection)
         {
             HandleActionSelection();
         }
-        else if (state == BattleState.PlayerMove)
+        else if (state == BattleState.MoveSelection)
         {
             HandleSkillSelection();
         }
@@ -233,7 +233,7 @@ public class BattleSystem : MonoBehaviour
 
     public void ActionSelection()
     {
-        state = BattleState.PlayerAction;
+        state = BattleState.ActionSelection;
         battleDialog.SetDialog("Choose an action");
         battleDialog.EnableActionSelector(true);
     }
@@ -249,7 +249,7 @@ public class BattleSystem : MonoBehaviour
 
     public void MoveSelection()
     {
-        state = BattleState.PlayerMove;
+        state = BattleState.MoveSelection;
         battleDialog.EnableActionSelector(false);
         battleDialog.EnableDialogText(false);
         battleDialog.EnableSkillSelector(true);
@@ -259,8 +259,8 @@ public class BattleSystem : MonoBehaviour
     // 플레이어 ---공격---> 적
     IEnumerator PlayerMove()
     {
-        // 플레이어가 계속 스킬선택할수있음으로, 상태를 Busy로
-        state = BattleState.Busy;
+        // 플레이어가 계속 스킬선택할수있음으로, 상태를 Busy로 PerformMove로 변경
+        state = BattleState.PerformMove;
 
         var skill = playerUnit.Pokemon.Skills[currentSkill];
         // 스킬 사용시 PP 감소
@@ -299,7 +299,7 @@ public class BattleSystem : MonoBehaviour
     // 적 ---공격---> 플레이어
     IEnumerator EnemyMove()
     {
-        state = BattleState.EnemyMove;
+        state = BattleState.PerformMove;
 
         // 일단 랜덤스킬 고르기
         var skill = enemyUnit.Pokemon.GetRandomSkill();
