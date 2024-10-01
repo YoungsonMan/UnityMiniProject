@@ -15,6 +15,8 @@ public class BattleSystem : MonoBehaviour
 
     [SerializeField] BattleDialogBox battleDialog;
 
+    [SerializeField] PartyScreen partyScreen;
+
     public event Action<bool> OnBattleOver; // bool을 줘서 승패를 가릴수 있게
 
     BattleState state;
@@ -44,16 +46,26 @@ public class BattleSystem : MonoBehaviour
 
     void HandleActionSelection()
     {
-        if (Input.GetKeyDown(KeyCode.DownArrow))
+        if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            if(currentAction < 1)
-                ++ currentAction;
+            ++currentAction;
+        }
+        else if (Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            --currentAction;
+        }
+        else if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            currentAction += 2;
         }
         else if (Input.GetKeyDown(KeyCode.UpArrow))
         {
-            if (currentAction > 0) 
-                -- currentAction;
+            currentAction -= 2;
         }
+        // 스킬고르는거랑 비슷하지만 맥스갯수 안넘어가는법을 조금다르게
+        // 이게 더 심플하고 깔끔.
+        currentAction = Mathf.Clamp(currentAction, 0, 3);
+
         battleDialog.UpdateActionSelection(currentAction);
 
         if (Input.GetKeyDown(KeyCode.Z))
@@ -64,6 +76,15 @@ public class BattleSystem : MonoBehaviour
                 PlayerMove();
             }
             else if (currentAction == 1)
+            {
+                // Bag
+            }
+            else if (currentAction == 2)
+            {
+                // Pokemon
+                OpenPartyScreen();
+            }
+            else if (currentAction == 3)
             {
                 // Run
             }
@@ -77,45 +98,56 @@ public class BattleSystem : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            if (currentSkill < playerUnit.Pokemon.Skills.Count - 1)
-                ++currentSkill;
+            ++currentSkill;
         }
         else if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
-            if (currentSkill > 0)
-                --currentSkill;
+            --currentSkill;
         }
         else if (Input.GetKeyDown(KeyCode.DownArrow))
         {
-            if (currentSkill < playerUnit.Pokemon.Skills.Count - 2)
-                currentSkill += 2;
+            currentSkill += 2;
         }
         else if (Input.GetKeyDown(KeyCode.UpArrow))
         {
-            if (currentSkill > 1)
-                currentSkill -= 2;
+            currentSkill -= 2;
         }
+        currentSkill = Mathf.Clamp(currentSkill, 0, playerUnit.Pokemon.Skills.Count - 1); //리스트가 0부터 시작하니까 -1
 
         battleDialog.UpdateSkillSelection(currentSkill, playerUnit.Pokemon.Skills[currentSkill]);
 
-        if (Input.GetKeyDown(KeyCode.Z))
+        // Z키로 선택
+        if (Input.GetKeyDown(KeyCode.Z)) 
         {
             battleDialog.EnableSkillSelector(false);
             battleDialog.EnableDialogText(true);
             StartCoroutine(PerformPlayerSkill());
         }
-
+        // X키로 취소
+        else if (Input.GetKeyDown(KeyCode.X))
+        {
+            battleDialog.EnableSkillSelector(false);
+            battleDialog.EnableDialogText(true);
+            PlayerAction();
+        }
     }
 
 
     public IEnumerator SetUpBattle()
     {
+        // Party에 살아있는 포켓몬 확인하고 소환
         playerUnit.Setup(playerParty.GetHealthyPokemon());
         playerHud.SetData(playerUnit.Pokemon);
 
+        // 상대(야생포켓몬) 등장
         enemyUnit.Setup(wildPokemon);
         enemyHud.SetData(enemyUnit.Pokemon);
 
+        // 파티스크린
+        partyScreen.Init();
+
+
+        // 스킬리스트
         battleDialog.SetSkillNames(playerUnit.Pokemon.Skills);
 
         // 코루틴 완료될때까지 기다리고 완료되면실행
@@ -127,9 +159,19 @@ public class BattleSystem : MonoBehaviour
     public void PlayerAction()
     {
         state = BattleState.PlayerAction;
-        StartCoroutine(battleDialog.TypeDialog("Choose an action"));
+        battleDialog.SetDialog("Choose an action");
         battleDialog.EnableActionSelector(true);
     }
+
+
+    public void OpenPartyScreen()
+    {
+        Debug.Log("LoadPartyScreen");
+        print("PartyScrenLoaded");
+        partyScreen.SetPartyData(playerParty.Pokemons);
+        partyScreen.gameObject.SetActive(true);
+    }
+
     public void PlayerMove()
     {
         state = BattleState.PlayerMove;
