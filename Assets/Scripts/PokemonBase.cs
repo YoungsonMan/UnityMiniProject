@@ -24,6 +24,8 @@ public class PokemonBase : ScriptableObject
     [SerializeField] int sDefense;
     [SerializeField] int speed;
 
+    [SerializeField] int catchRate = 255; // 인터넷에 확률 다 있음... 일단 여기서 기본값으로
+
     [SerializeField] List<LearnableSkill> learnableSkills;
 
     public string Name
@@ -79,6 +81,8 @@ public class PokemonBase : ScriptableObject
     {
         get { return learnableSkills; }
     }
+
+    public int CatchRate => catchRate;
 }
 
 

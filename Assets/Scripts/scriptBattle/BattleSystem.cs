@@ -6,6 +6,8 @@ using UnityEngine;
 
 public enum BattleState { Start, ActionSelection, MoveSelection, PerformMove, Busy, PartyScreen, BattleOver } // Busy = 공격중
 
+
+
 public class BattleSystem : MonoBehaviour
 {
     [SerializeField] BattleUnit playerUnit;
@@ -76,21 +78,22 @@ public class BattleSystem : MonoBehaviour
         {
             if (currentAction == 0)
             {
-                // Fight
+                // Fight 싸우다
                 MoveSelection();
             }
             else if (currentAction == 1)
             {
-                // Bag
+                // Bag 가방
+
             }
             else if (currentAction == 2)
             {
-                // Pokemon
+                // Pokemon 포켓몬 / 파티
                 OpenPartyScreen();
             }
             else if (currentAction == 3)
             {
-                // Run
+                // Run 도망
             }
         }
     }
@@ -469,6 +472,11 @@ public class BattleSystem : MonoBehaviour
     IEnumerator ThrowPokeball()
     {
         state = BattleState.Busy;
+
+        //
+        // 나중에 트레이너 배틀 구현하면 못던지게하는 코드추가해야됨
+        //
+
         yield return battleDialog.TypeDialog("Player used Pokeball!");
 
         var pokeballObject = Instantiate(pokeballSprite, playerUnit.transform.position - new Vector3(2,0), Quaternion.identity);
@@ -480,16 +488,69 @@ public class BattleSystem : MonoBehaviour
         yield return enemyUnit.PlayCaptureAnimation(); // 포켓몬 몬스터볼에 빨려가는 모션
         yield return pokeball.transform.DOMoveY(enemyUnit.transform.position.y - 1.3f, 0.5f).WaitForCompletion();
 
-        for (int i = 0; i < 3; i++) // 몹들어가고 떨어져서 흔들리는 횟수 (3)
+        int shakeCount = TryToCatchPokemon(enemyUnit.Pokemon); 
+
+        for (int i = 0; i < Mathf.Min(shakeCount, 3); i++) // 몹들어가고 떨어져서 흔들리는 횟수 (3)
         {
             yield return new WaitForSeconds(0.5f);
             yield return pokeball.transform.DOPunchRotation(new Vector3(0, 0, 10f), 0.8f).WaitForCompletion();
+        }
+        if (shakeCount == 4) // 띡...띡..띡. !!! 네번째면 잡히는것
+        {
+            // 성공 
+            yield return battleDialog.TypeDialog($"{enemyUnit.Pokemon.pBase.Name} WAS CAUGHT!");
+            yield return pokeball.DOFade(0, 1.5f).WaitForCompletion();
+
+            // 파티에 넣기
+            playerParty.AddPokemon(enemyUnit.Pokemon);
+            yield return battleDialog.TypeDialog($"{enemyUnit.Pokemon.pBase.Name} is now ADDED to your party!");
+            Destroy(pokeball);
+            BattleOver(true);
+        }
+        else
+        {
+            // 실패
+            yield return new WaitForSeconds(1f);
+            pokeball.DOFade(0, 0.2f);
+            yield return enemyUnit.PlayBreakOutAnimation();
+
+            // 멘트 (흔들린거에따라 더 아깝게)
+            if (shakeCount < 2)
+            {
+                yield return battleDialog.TypeDialog($"{enemyUnit.Pokemon.pBase.Name} broke free.");
+            }
+            else
+            {
+                yield return battleDialog.TypeDialog($"Agh!!! ALMOST HAD IT");
+            }
+            Destroy(pokeball);
+            // 여기 수정해야됨 런턴 런턴 배틀스테이트 
+            // state = BattleState.RunningTurn;
         }
     }
 
     int TryToCatchPokemon(Pokemon pokemon)
     {
+        float a = (3 * pokemon.Hp - 2 * pokemon.curHP) * pokemon.pBase.CatchRate * ConditionsDB.GetStatusBonus(pokemon.Status) / (3 * pokemon.Hp);
 
+        if (a >= 255)
+        {
+            return 4;
+        }
+        float b = 1048560 / Mathf.Sqrt(Mathf.Sqrt(16711680 / a));
+
+        // 어떤식의 계산법인지모르겠지만 포켓몬 박사님들이 낸 공식...
+        // https://bulbapedia.bulbagarden.net/wiki/Catch_rate
+        int shakeCount = 0;
+        while (shakeCount < 4)
+        {
+            if (UnityEngine.Random.Range(0, 65535) >= b)
+            {
+                break;
+            }
+            ++shakeCount;
+        }
+        return shakeCount;
     }
 
 }

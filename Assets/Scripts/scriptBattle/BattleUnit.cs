@@ -51,6 +51,7 @@ public class BattleUnit : MonoBehaviour
         PlayerEnterAnimation();
     }
 
+    // 포켓몬 등장 애니메이션
     public void PlayerEnterAnimation()
     {
 
@@ -65,6 +66,7 @@ public class BattleUnit : MonoBehaviour
         image.transform.DOLocalMoveX(originalPos.x, 1f);
     }
 
+    // 포켓몬 공격 애니메이션
     public void PlayAttackAnimation()
     {
         // Dotween으로 시퀀스를 하나하나씩 재생가능
@@ -84,12 +86,16 @@ public class BattleUnit : MonoBehaviour
         // 움직였다 자리복귀
         sequence.Append(image.transform.DOLocalMoveX(originalPos.x, 0.25f));
     }
+
+    // 포켓몬 피격/맞는 애니메이션
     public void PlayHitAnimation()
     {
         var sequence = DOTween.Sequence();
         sequence.Append(image.DOColor(Color.gray, 0.1f));
         sequence.Append(image.DOColor(originalColor, 01f));
     }
+
+    // 포켓몬 기절/죽음/퇴장/시합불가 애니메이션
     public void PlayFaintAnimation()
     {
         var sequence = DOTween.Sequence();
@@ -99,12 +105,23 @@ public class BattleUnit : MonoBehaviour
         sequence.Join(image.DOFade(0f, 0.5f)); //위에 내려가는거랑 함께 재생되게 Join함수
     }
 
+    // 몬스터볼 잡히는 애니메이션
     public IEnumerator PlayCaptureAnimation()
     {
         var sequence = DOTween.Sequence();
         sequence.Append(image.DOFade(0, 0.5f));
         sequence.Join(transform.DOLocalMoveY(originalPos.y + 50f, 0.5f));
         sequence.Join(transform.DOScale(new Vector3(0.3f, 0.3f, 1f), 0.5f));
+        yield return sequence.WaitForCompletion();
+    }
+
+    // 몬스터볼 탈출 애니메이션 (잡히는거랑 반대)
+    public IEnumerator PlayBreakOutAnimation()
+    {
+        var sequence = DOTween.Sequence();
+        sequence.Append(image.DOFade(1, 0.5f));
+        sequence.Join(transform.DOLocalMoveY(originalPos.y, 0.5f));
+        sequence.Join(transform.DOScale(new Vector3(1f, 1f, 1f), 0.5f));
         yield return sequence.WaitForCompletion();
     }
 }
