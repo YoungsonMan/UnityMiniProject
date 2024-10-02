@@ -46,6 +46,11 @@ public class BattleUnit : MonoBehaviour
         }
 
         hud.SetData(pokemon); 
+        
+
+
+        // 몬스터볼 던질때 몹 사이즈 변경되서 다시리사이즈
+        transform.localScale = new Vector3(3.5f, 3.5f, 3.5f);  
 
         image.color = originalColor;
         PlayerEnterAnimation();

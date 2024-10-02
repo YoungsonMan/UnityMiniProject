@@ -21,7 +21,10 @@ public class GameManager : MonoBehaviour
         var playerParty = playerController.GetComponent<PokemonParty>();
         var wildPokemon = FindObjectOfType<MapArea>().GetComponent<MapArea>().PopRandomWildPokemon();
 
-        battleSystem.StartBattle(playerParty, wildPokemon);
+        // 카피만들어서 플레이어 파티에 넣어야지 플레이어포켓몬 복제본 야생에서 안나옴
+        var wildPokemonCopy = new Pokemon(wildPokemon.pBase, wildPokemon.Level);
+
+        battleSystem.StartBattle(playerParty, wildPokemonCopy);
     }
     void EndBattle(bool won)
     {

@@ -327,10 +327,16 @@ public class BattleSystem : MonoBehaviour
         {   // 포켓몬 교체/교대
             if (playerAction == BattleAction.SwtichPokemon)
             {
-                var selectedPokemon = playerParty.Pokemons[currentSkill];
+                var selectedPokemon = playerParty.Pokemons[currentMember];
                 state = BattleState.Busy;
                 yield return SwitchPokemon(selectedPokemon);
             }
+            else if (playerAction == BattleAction.UseItem)
+            {
+                battleDialog.EnableActionSelector(false);
+                yield return ThrowPokeball();
+            }
+
             // 후에는 적차례
             var enemyMove = enemyUnit.Pokemon.GetRandomSkill();
             yield return RunMove(enemyUnit, playerUnit, enemyMove);
