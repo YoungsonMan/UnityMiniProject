@@ -62,3 +62,6 @@ TagManager:
   - name: ForeObjects
     uniqueID: 974734003
     locked: 0
+  - name: Battle
+    uniqueID: 3047327819
+    locked: 0

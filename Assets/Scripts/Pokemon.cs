@@ -24,6 +24,7 @@ public class Pokemon
     public int curHP {  get; set; }    
 
     public List<Skill> Skills {  get; set; }
+    public Skill CurrnetSkill { get; set; }
 
     public Dictionary<Stat, int> Stats { get; private set; }
 
@@ -57,7 +58,7 @@ public class Pokemon
 
         ResetStatBoost();
         Status = null;
-        VolatileStatus = null;
+        VolatileStatus = null; 
 
     }
 

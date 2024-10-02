@@ -74684,7 +74684,7 @@ Canvas:
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 0
-  m_SortingLayerID: 0
+  m_SortingLayerID: -1247639477
   m_SortingOrder: 0
   m_TargetDisplay: 0
 --- !u!1 &1052131173
@@ -80197,6 +80197,7 @@ MonoBehaviour:
   enemyUnit: {fileID: 1446037088}
   battleDialog: {fileID: 1131546845}
   partyScreen: {fileID: 1493307672}
+  pokeballSprite: {fileID: 28538755981199679, guid: dd62206301a678143ab42b8ccbeb5200, type: 3}
 --- !u!1 &1953696643
 GameObject:
   m_ObjectHideFlags: 0
@@ -80530,14 +80531,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pokemons:
-  - pokeBase: {fileID: 11400000, guid: 15a5badf800cc6247b8c34910c079dba, type: 2}
-    level: 14
   - pokeBase: {fileID: 11400000, guid: aedb95f2b03c0574f9b9677cd44d3c04, type: 2}
-    level: 7
+    level: 10
   - pokeBase: {fileID: 11400000, guid: 28b0b113dabd24242872d61435307d8a, type: 2}
     level: 5
   - pokeBase: {fileID: 11400000, guid: 5d89f9c418984d447950413f8a1b5e5b, type: 2}
     level: 10
+  - pokeBase: {fileID: 11400000, guid: 15a5badf800cc6247b8c34910c079dba, type: 2}
+    level: 14
 --- !u!1 &2135426578
 GameObject:
   m_ObjectHideFlags: 0

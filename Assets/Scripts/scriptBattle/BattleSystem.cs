@@ -4,9 +4,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum BattleState { Start, ActionSelection, MoveSelection, PerformMove, Busy, PartyScreen, BattleOver } // Busy = 공격중
-
-
+public enum BattleState { Start, ActionSelection, MoveSelection, RunningTurn, Busy, PartyScreen, BattleOver } // Busy = 공격중
+// PerformMove --> RunningTurn
+public enum BattleAction { Move, SwtichPokemon, UseItem, Run}
 
 public class BattleSystem : MonoBehaviour
 {
@@ -23,6 +23,8 @@ public class BattleSystem : MonoBehaviour
     public event Action<bool> OnBattleOver; // bool을 줘서 승패를 가릴수 있게
 
     BattleState state;
+    BattleState? prevState;
+
     int currentAction;      // 현제는 0 = Fight, 1 = Run 추후 아이템, 교체 같은거 추가하면 변경될예정
     int currentSkill;
     int currentMember;
@@ -84,11 +86,13 @@ public class BattleSystem : MonoBehaviour
             else if (currentAction == 1)
             {
                 // Bag 가방
+                StartCoroutine(RunTurns(BattleAction.UseItem));
 
             }
             else if (currentAction == 2)
             {
                 // Pokemon 포켓몬 / 파티
+                prevState = state;
                 OpenPartyScreen();
             }
             else if (currentAction == 3)
@@ -128,7 +132,7 @@ public class BattleSystem : MonoBehaviour
         {
             battleDialog.EnableSkillSelector(false);
             battleDialog.EnableDialogText(true);
-            StartCoroutine(PlayerMove());
+            StartCoroutine(RunTurns(BattleAction.Move));
         }
         // X키로 취소
         else if (Input.GetKeyDown(KeyCode.X))
@@ -177,8 +181,19 @@ public class BattleSystem : MonoBehaviour
             }
 
             partyScreen.gameObject.SetActive(false);
-            state = BattleState.Busy;
-            StartCoroutine(SwitchPokemon(selectedMember));
+
+            if (prevState == BattleState.ActionSelection)
+            {
+                prevState = null;
+                StartCoroutine(RunTurns(BattleAction.SwtichPokemon));
+            }
+            else // 죽어서 교대하는거면
+            {
+                state = BattleState.Busy;
+                StartCoroutine(SwitchPokemon(selectedMember));
+
+            }
+
         }
         else if (Input.GetKeyDown(KeyCode.X))
         {
@@ -190,10 +205,8 @@ public class BattleSystem : MonoBehaviour
     // 포켓몬 교체|교대 함수
     IEnumerator SwitchPokemon(Pokemon newPokemon)
     {
-        bool currentPokemonFainted = true;
         if (playerUnit.Pokemon.curHP > 0) // 살아있는 포켓몬만 교대
         {
-            currentPokemonFainted = false;
             yield return battleDialog.TypeDialog($"Come back {playerUnit.Pokemon.pBase.Name}");
             playerUnit.PlayFaintAnimation(); // 교체애니메이션을 새로해도 되지만(왼쪽으로빠진다던가..) 일단 기절모션 재탕
             yield return new WaitForSeconds(2f);
@@ -207,15 +220,7 @@ public class BattleSystem : MonoBehaviour
         // 코루틴 완료될때까지 기다리고 완료되면실행
         yield return battleDialog.TypeDialog($"Go, {newPokemon.pBase.Name}!!! ");
 
-        if (currentPokemonFainted)
-        {   // 이전포켓몬 기절해서 교대로 나온거면 플레이어턴
-            ChooseFirstTurn();
-        }
-        else
-        {   // 교체해서 들어온거면
-            // 상대차례
-            StartCoroutine(EnemyMove());
-        }
+        state = BattleState.RunningTurn;
     }
 
     // 배틀세팅하기 함수
@@ -237,21 +242,10 @@ public class BattleSystem : MonoBehaviour
         // 코루틴 완료될때까지 기다리고 완료되면실행
         yield return battleDialog.TypeDialog($"A wild {enemyUnit.Pokemon.pBase.Name} appeared.");
 
-        ChooseFirstTurn();
+        ActionSelection();
     }
 
-    // 선빵함수
-    public void ChooseFirstTurn()
-    {
-        if (playerUnit.Pokemon.Speed >= enemyUnit.Pokemon.Speed)
-        {
-            ActionSelection();
-        }
-        else
-        {
-            StartCoroutine(EnemyMove());    
-        }
-    } //이후에 '전광석화'같이 무조건선빵떄리는 스킬 추가하면 변경...
+
 
     // 배틀끝|종료 함수
     public void BattleOver(bool won) 
@@ -288,36 +282,70 @@ public class BattleSystem : MonoBehaviour
         battleDialog.EnableSkillSelector(true);
     }
 
-
-    // 플레이어차례 함수: 플레이어 ---공격---> 적
-    IEnumerator PlayerMove()
+    
+    // 이전 메커니즘에서는 적포켓몬이 속도빨라서 선빵이면 선택지선택전에 뚜까맞고 선택후 시작이였음
+    // 그러면 아이템을 먼져 못써서 그냥 죽는 그런 지금 포켓몬게임 메커니즘과 다름
+    // 구조조정
+    IEnumerator RunTurns(BattleAction playerAction)
     {
-        // 플레이어가 계속 스킬선택할수있음으로, 상태를 Busy로 PerformMove로 변경
-        state = BattleState.PerformMove;
-        var skill = playerUnit.Pokemon.Skills[currentSkill];
-        yield return RunMove(playerUnit, enemyUnit, skill);
+        state = BattleState.RunningTurn;
 
-        // 배틀상태가 RunMove로 바뀌는거 아니면 진행
-        if (state == BattleState.PerformMove)
+        if (playerAction == BattleAction.Move)
         {
-            StartCoroutine(EnemyMove());
+            playerUnit.Pokemon.CurrnetSkill = playerUnit.Pokemon.Skills[currentSkill];
+            enemyUnit.Pokemon.CurrnetSkill = enemyUnit.Pokemon.GetRandomSkill();
+
+            // 선빵치는 포켓몬 정하기
+            bool playerGoesFirst = playerUnit.Pokemon.Speed >= enemyUnit.Pokemon.Speed;
+
+            var firstUnit = (playerGoesFirst) ? playerUnit : enemyUnit;
+            var secondUnit = (playerGoesFirst) ? enemyUnit : playerUnit;
+
+
+            var secondPokemon = secondUnit.Pokemon; 
+
+            // 선공
+            yield return RunMove(firstUnit, secondUnit, firstUnit.Pokemon.CurrnetSkill);
+            yield return RunAfterTurn(firstUnit);
+            if (state == BattleState.BattleOver)
+            {   // 맞고죽으면 끝
+                yield break;
+            }
+
+            if(secondPokemon.curHP > 0) // 살았으면 실행
+            {
+                // 후공
+                yield return RunMove(secondUnit, firstUnit, secondUnit.Pokemon.CurrnetSkill);
+                yield return RunAfterTurn(secondUnit);
+                if (state == BattleState.BattleOver)
+                {   // 못버티면 끝
+                    yield break;
+                }
+            }
         }
-    }
-
-    // 적차례 함수: 적 ---공격---> 플레이어
-    IEnumerator EnemyMove()
-    {
-        state = BattleState.PerformMove;
-        // 일단 랜덤스킬 고르기
-        var skill = enemyUnit.Pokemon.GetRandomSkill();
-        yield return RunMove(enemyUnit, playerUnit, skill);
-
-        // 배틀상태가 RunMove로 바뀌는거 아니면 진행
-        if (state == BattleState.PerformMove)
+        else
+        {   // 포켓몬 교체/교대
+            if (playerAction == BattleAction.SwtichPokemon)
+            {
+                var selectedPokemon = playerParty.Pokemons[currentSkill];
+                state = BattleState.Busy;
+                yield return SwitchPokemon(selectedPokemon);
+            }
+            // 후에는 적차례
+            var enemyMove = enemyUnit.Pokemon.GetRandomSkill();
+            yield return RunMove(enemyUnit, playerUnit, enemyMove);
+            yield return RunAfterTurn(enemyUnit);
+            if (state == BattleState.BattleOver)
+            {   // 못버티면 끝
+                yield break;
+            }
+        }
+        if (state != BattleState.BattleOver) //안끝났으면 다시선택
         {
             ActionSelection();
         }
     }
+
 
     // 플레이어 공격 | 적 공격이 같은로직에 상반되는 방식이여서
     // 상태공격등 스킬의 변수들 더 추가하면 더 복잡해지므로 캡슐화
@@ -369,18 +397,7 @@ public class BattleSystem : MonoBehaviour
 
         }
 
-        // 상태이상 데미지 들어오는 함수
-        sourceUnit.Pokemon.OnAfterTurn();
-        yield return ShowStatusChanges(sourceUnit.Pokemon);
-        yield return sourceUnit.Hud.UpdateHP();
-        // 상태이상으로도 데미지 받다 죽을수 있으니 죽을수있게 설계
-        if (sourceUnit.Pokemon.curHP <= 0)
-        {
-            yield return battleDialog.TypeDialog($"{sourceUnit.Pokemon.pBase.Name} Fainted");
-            sourceUnit.PlayFaintAnimation();
-            yield return new WaitForSeconds(2f);
-            CheckForBattleOver(sourceUnit);
-        }
+        
     }
     IEnumerator RunSkillEffects(Skill skill, Pokemon source, Pokemon target)
     {
@@ -413,6 +430,27 @@ public class BattleSystem : MonoBehaviour
 
             yield return ShowStatusChanges(source);
             yield return ShowStatusChanges(target);
+        }
+    }
+    IEnumerator RunAfterTurn(BattleUnit sourceUnit)
+    {
+        if(state == BattleState.BattleOver)
+        {
+            yield break;
+        }
+        yield return new WaitUntil(() => state == BattleState.RunningTurn);
+
+        // 상태이상 데미지 들어오는 함수
+        sourceUnit.Pokemon.OnAfterTurn();
+        yield return ShowStatusChanges(sourceUnit.Pokemon);
+        yield return sourceUnit.Hud.UpdateHP();
+        // 상태이상으로도 데미지 받다 죽을수 있으니 죽을수있게 설계
+        if (sourceUnit.Pokemon.curHP <= 0)
+        {
+            yield return battleDialog.TypeDialog($"{sourceUnit.Pokemon.pBase.Name} Fainted");
+            sourceUnit.PlayFaintAnimation();
+            yield return new WaitForSeconds(2f);
+            CheckForBattleOver(sourceUnit);
         }
     }
 
@@ -525,7 +563,7 @@ public class BattleSystem : MonoBehaviour
             }
             Destroy(pokeball);
             // 여기 수정해야됨 런턴 런턴 배틀스테이트 
-            // state = BattleState.RunningTurn;
+            state = BattleState.RunningTurn;
         }
     }
 
