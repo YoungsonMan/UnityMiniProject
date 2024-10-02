@@ -316,6 +316,14 @@ public class BattleSystem : MonoBehaviour
     // 행동함수
     IEnumerator RunMove(BattleUnit sourceUnit, BattleUnit targetUnit, Skill skill)
     {
+        bool canRunSkill =  sourceUnit.Pokemon.OnBeforeMove();
+        if (!canRunSkill)
+        {
+            yield return ShowStatusChanges(sourceUnit.Pokemon);
+            yield break;
+        }
+        yield return ShowStatusChanges(sourceUnit.Pokemon); //마비 걸려도 1/4확률로만 못움직이니까 
+
         // 스킬 사용시 PP 감소
         skill.PP--;
         // 데미지 가하기

@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Butterfree
   m_EditorClassIdentifier: 
   name: Butterfree
-  description: 
+  description: It collects honey every day. It rubs honey onto the hairs on its legs
+    to carry it back to its nest.
   frontSprite: {fileID: 997490835, guid: d06e198009e8c5f4d8c19f0afa4abbed, type: 3}
   backSprite: {fileID: 295176039, guid: 25c1a51b5b660304485e06c53066dafb, type: 3}
   type1: 12
@@ -28,4 +29,8 @@ MonoBehaviour:
   - skillBase: {fileID: 11400000, guid: 71e744a6b683664438edd88f6c2ab7ef, type: 2}
     level: 1
   - skillBase: {fileID: 11400000, guid: 84b5bf5abe253374580bb7a26ca724ff, type: 2}
+    level: 12
+  - skillBase: {fileID: 11400000, guid: fac38433e1919ee4fbcfde9aae2f6fdd, type: 2}
+    level: 12
+  - skillBase: {fileID: 11400000, guid: 19ef7e56121185e44ae6763794f0cd0b, type: 2}
     level: 12

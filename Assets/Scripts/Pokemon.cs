@@ -31,8 +31,10 @@ public class Pokemon
     public Dictionary<Stat, int> StatBoosts { get; private set; }
 
     public Condition Status { get; private set; }
+    public int StatusTime { get; set;}
     public Queue<string> StatusChanges { get; private set; } = new Queue<string>();
     public bool HpChanged { get; set; }
+    public event System.Action OnStatusChanged;
 
     public void Init() // 얘도 이제 이니셜라이즈 Initialization
     {
@@ -62,7 +64,7 @@ public class Pokemon
         Stats.Add(Stat.SpecialDefense, Mathf.FloorToInt((pBase.SpecialDefense * Level) / 100f) + 5);
         Stats.Add(Stat.Speed, Mathf.FloorToInt((pBase.Speed * Level) / 100f) + 5);
 
-        Hp = Mathf.FloorToInt((pBase.HP * Level) / 100f) + 10;
+        Hp = Mathf.FloorToInt((pBase.HP * Level) / 100f) + 10 + Level;
     }
 
     void ResetStatBoost()
@@ -217,8 +219,21 @@ public class Pokemon
     }
     public void SetStatus(ConditionID conditionId)
     {
+        if (Status != null)
+        {
+            return;
+        }
         Status = ConditionsDB.Conditions[conditionId];
+        Status?.OnStart?.Invoke(this);
         StatusChanges.Enqueue($"{pBase.Name} {Status.StartMessage}");
+
+        OnStatusChanged?.Invoke(); 
+    }
+
+    public void CureStatus()
+    {
+        Status = null;
+        OnStatusChanged?.Invoke();
     }
 
     public Skill GetRandomSkill()
@@ -228,7 +243,14 @@ public class Pokemon
         int r = Random.Range(0, Skills.Count);
         return Skills[r];
     }
-
+    public bool OnBeforeMove()
+    {
+        if (Status?.OnBeforeMove != null)
+        {
+            return Status.OnBeforeMove(this);   
+        }
+        return true;
+    }
     public void OnAfterTurn()
     {
         Status?.OnAfterTurn?.Invoke(this); //sleep 이나 바로 효과나오는거 대비

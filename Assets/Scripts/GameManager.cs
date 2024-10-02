@@ -29,6 +29,11 @@ public class GameManager : MonoBehaviour
         battleSystem.gameObject.SetActive(false);
         worldCamera.gameObject.SetActive(true);
     }
+
+    private void Awake()
+    {
+        ConditionsDB.Init();
+    }
     private void Start()
     {
         playerController.OnEncounter += StartBattle;
