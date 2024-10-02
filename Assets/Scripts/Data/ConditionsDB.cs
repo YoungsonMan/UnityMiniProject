@@ -102,11 +102,46 @@ public class ConditionsDB
                     return false;
                 }
             }
+        },
+        {   // Volatile Status, 배틀끝나면 없어지는효과 (혼란, 헤롱헤롱, 풀죽음)
+            ConditionID.confusion, new Condition()
+            {
+                Name = "Confusion",
+                StartMessage = "has been confused",
+                // 최면은 바로 걸리니까
+                OnStart = (Pokemon pokemon) =>
+                {
+                    // 1-4턴 동안 혼돈, 확류로 본인을 때림
+                    pokemon.VolatileStatusTime = Random.Range( 1, 5 );
+                    Debug.Log($"Will be confused for {pokemon.VolatileStatusTime} moves.");
+                },
+                OnBeforeMove = (Pokemon pokemon) =>
+                {
+                    if (pokemon.VolatileStatusTime <= 0)
+                    {   // 걸린 턴 다 지나면 일어나기 
+                        pokemon.CureVolatileStatus();
+                        pokemon.StatusChanges.Enqueue($"{pokemon.pBase.Name} GOT OUT from confusion! ");
+                        return true;
+                    }
+
+                    pokemon.VolatileStatusTime--;
+                    // 50% 확률로 스킬시전 (7세대부터 33%라고함)
+                    if(Random.Range( 1, 3 ) == 1)
+                    {
+                        return true;
+                    }
+                    // 나머지 확률 자해 "영문도 모른 채 자신을 공격했다!"
+                    pokemon.StatusChanges.Enqueue($"{pokemon.pBase.Name} is CONFUSED.");
+                    pokemon.UpdateHP(pokemon.Hp / 8);
+                    pokemon.StatusChanges.Enqueue($"It HURT ITSELF due to confusion.");
+                    return false;
+                }
+            }
         }
     };
 }
 
 public enum ConditionID
 {
-    none, psn, brn, slp, par, frz
+    none, psn, brn, slp, par, frz, confusion
 }

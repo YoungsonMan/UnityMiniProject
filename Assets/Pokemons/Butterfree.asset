@@ -26,8 +26,8 @@ MonoBehaviour:
   sDefense: 80
   speed: 70
   learnableSkills:
-  - skillBase: {fileID: 11400000, guid: 71e744a6b683664438edd88f6c2ab7ef, type: 2}
-    level: 1
+  - skillBase: {fileID: 11400000, guid: ade03767898db844aabeb59b76461a9e, type: 2}
+    level: 14
   - skillBase: {fileID: 11400000, guid: 84b5bf5abe253374580bb7a26ca724ff, type: 2}
     level: 12
   - skillBase: {fileID: 11400000, guid: fac38433e1919ee4fbcfde9aae2f6fdd, type: 2}

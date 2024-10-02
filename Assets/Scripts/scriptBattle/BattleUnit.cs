@@ -98,4 +98,13 @@ public class BattleUnit : MonoBehaviour
         // 보이는값 죽여서 fade out & 안보이게
         sequence.Join(image.DOFade(0f, 0.5f)); //위에 내려가는거랑 함께 재생되게 Join함수
     }
+
+    public IEnumerator PlayCaptureAnimation()
+    {
+        var sequence = DOTween.Sequence();
+        sequence.Append(image.DOFade(0, 0.5f));
+        sequence.Join(transform.DOLocalMoveY(originalPos.y + 50f, 0.5f));
+        sequence.Join(transform.DOScale(new Vector3(0.3f, 0.3f, 1f), 0.5f));
+        yield return sequence.WaitForCompletion();
+    }
 }

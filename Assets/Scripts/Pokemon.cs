@@ -32,6 +32,10 @@ public class Pokemon
 
     public Condition Status { get; private set; }
     public int StatusTime { get; set;}
+
+    public Condition VolatileStatus { get; private set; }
+    public int VolatileStatusTime { get; set; } 
+
     public Queue<string> StatusChanges { get; private set; } = new Queue<string>();
     public bool HpChanged { get; set; }
     public event System.Action OnStatusChanged;
@@ -43,7 +47,7 @@ public class Pokemon
         Skills = new List<Skill>();
         foreach (var skill in pBase.LearnableSkills)
         {
-            if (skill.Level <= Level)
+            if (skill.Level <= Level)                   // 스킬 배우는 레벨보다 높으면 추가
                 Skills.Add(new Skill(skill.Base));
             if (Skills.Count >= 4)
                 break;
@@ -51,7 +55,9 @@ public class Pokemon
         CalculateStats();
         curHP = Hp;
 
-        ResetStatBoost(); 
+        ResetStatBoost();
+        Status = null;
+        VolatileStatus = null;
 
     }
 
@@ -236,6 +242,24 @@ public class Pokemon
         OnStatusChanged?.Invoke();
     }
 
+    public void SetVolatileStatus(ConditionID conditionId)
+    {
+        if (VolatileStatus != null)
+        {
+            return;
+        }
+        VolatileStatus = ConditionsDB.Conditions[conditionId];
+        VolatileStatus?.OnStart?.Invoke(this);
+        StatusChanges.Enqueue($"{pBase.Name} {VolatileStatus.StartMessage}");
+    }
+
+    // VolatileStatus는 배틀끝나면 회복되는 (사실상 confusion만 아니고...)
+    public void CureVolatileStatus()
+    {
+        VolatileStatus = null;
+    }
+
+
     public Skill GetRandomSkill()
     {
         // 일단은 랜덤함수로 스킬갯수 숫자생성으로 스킬사용하게하고
@@ -245,19 +269,33 @@ public class Pokemon
     }
     public bool OnBeforeMove()
     {
+        bool canPerformMove = true;
         if (Status?.OnBeforeMove != null)
         {
-            return Status.OnBeforeMove(this);   
+            if(!Status.OnBeforeMove(this))
+            {
+                canPerformMove = false;
+            } 
         }
-        return true;
+        if (VolatileStatus?.OnBeforeMove != null)
+        {
+            if (!VolatileStatus.OnBeforeMove(this))
+            {
+                canPerformMove = false;
+            }
+        }
+
+        return canPerformMove  ;
     }
     public void OnAfterTurn()
     {
         Status?.OnAfterTurn?.Invoke(this); //sleep 이나 바로 효과나오는거 대비
+        VolatileStatus?.OnAfterTurn?.Invoke(this);
     }
 
     public void OnBattleOver()
     {
+        VolatileStatus = null;
         ResetStatBoost();
         Debug.Log("배틀시 스탯변경 초기화");
     }

@@ -1,3 +1,4 @@
+using DG.Tweening;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,6 +13,10 @@ public class BattleSystem : MonoBehaviour
 
     [SerializeField] BattleDialogBox battleDialog;
     [SerializeField] PartyScreen partyScreen;
+
+
+    [SerializeField] GameObject pokeballSprite; 
+
 
     public event Action<bool> OnBattleOver; // bool을 줘서 승패를 가릴수 있게
 
@@ -320,6 +325,7 @@ public class BattleSystem : MonoBehaviour
         if (!canRunSkill)
         {
             yield return ShowStatusChanges(sourceUnit.Pokemon);
+            yield return sourceUnit.Hud.UpdateHP();
             yield break;
         }
         yield return ShowStatusChanges(sourceUnit.Pokemon); //마비 걸려도 1/4확률로만 못움직이니까 
@@ -395,6 +401,11 @@ public class BattleSystem : MonoBehaviour
             {
                 target.SetStatus(effects.Status);   
             }
+            //상태변화 Volatile Status Condition
+            if (effects.VolatileStatus != ConditionID.none)
+            {
+                target.SetVolatileStatus(effects.VolatileStatus);
+            }
 
 
             yield return ShowStatusChanges(source);
@@ -452,6 +463,32 @@ public class BattleSystem : MonoBehaviour
         {
             yield return battleDialog.TypeDialog("It wasn't that effective...");
         }
+
+    }
+
+    IEnumerator ThrowPokeball()
+    {
+        state = BattleState.Busy;
+        yield return battleDialog.TypeDialog("Player used Pokeball!");
+
+        var pokeballObject = Instantiate(pokeballSprite, playerUnit.transform.position - new Vector3(2,0), Quaternion.identity);
+
+        var pokeball = pokeballObject.GetComponent<SpriteRenderer>();
+
+        // Animation
+        yield return pokeball.transform.DOJump(enemyUnit.transform.position + new Vector3(0,2), 2f, 1, 1f).WaitForCompletion(); // 몬스터볼 날라가는모션
+        yield return enemyUnit.PlayCaptureAnimation(); // 포켓몬 몬스터볼에 빨려가는 모션
+        yield return pokeball.transform.DOMoveY(enemyUnit.transform.position.y - 1.3f, 0.5f).WaitForCompletion();
+
+        for (int i = 0; i < 3; i++) // 몹들어가고 떨어져서 흔들리는 횟수 (3)
+        {
+            yield return new WaitForSeconds(0.5f);
+            yield return pokeball.transform.DOPunchRotation(new Vector3(0, 0, 10f), 0.8f).WaitForCompletion();
+        }
+    }
+
+    int TryToCatchPokemon(Pokemon pokemon)
+    {
 
     }
 
